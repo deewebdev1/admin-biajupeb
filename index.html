@@ -1197,7 +1197,7 @@ tr.candidate-row:hover td {
   background: #FFFFFF;
   border-radius: var(--radius-lg);
   width: 100%;
-  max-width: 520px;
+  max-width: 540px;
   box-shadow: var(--shadow-lg);
   overflow: hidden;
   max-height: 90vh;
@@ -1385,10 +1385,12 @@ tr.candidate-row:hover td {
   color: var(--ink);
   outline: none;
   font-family: inherit;
+  background: #FFFFFF;
 }
 
 .form-input:focus {
   border-color: var(--red);
+  box-shadow: 0 0 0 3px var(--red-soft);
 }
 
 .form-row-2 {
@@ -1527,7 +1529,7 @@ tr.candidate-row:hover td {
         <span>Walk-in Candidate</span>
       </a>
 
-      <div class="sb-section-label" style="margin-top:10px;">Filter By Status</div>
+      <div class="sb-section-label" style="margin-top:10px;">Filter By Faculty & Status</div>
       <a class="sb-link" id="navPaid" onclick="filterByQuick('paid')">
         <svg class="icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
         <span>Paid Candidates</span>
@@ -1538,6 +1540,21 @@ tr.candidate-row:hover td {
         <svg class="icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         <span>Pending Clearance</span>
         <span class="sb-badge" id="sbCountPending" style="background:rgba(217,119,6,0.3); color:#FDE68A;">0</span>
+      </a>
+
+      <a class="sb-link" onclick="filterByFaculty('Science')">
+        <svg class="icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2v7.31L4.1 19.3A2 2 0 0 0 5.8 22h12.4a2 2 0 0 0 1.7-2.7L14 9.31V2"/></svg>
+        <span>Faculty of Science</span>
+      </a>
+
+      <a class="sb-link" onclick="filterByFaculty('Arts')">
+        <svg class="icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>
+        <span>Faculty of Arts & Law</span>
+      </a>
+
+      <a class="sb-link" onclick="filterByFaculty('Commercial')">
+        <svg class="icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        <span>Faculty of Commercial</span>
       </a>
 
       <div class="sb-section-label" style="margin-top:10px;">Tools & Settings</div>
@@ -1827,7 +1844,7 @@ tr.candidate-row:hover td {
               <tr>
                 <th>Candidate Details</th>
                 <th>Reg / Matric No.</th>
-                <th>Course & Track</th>
+                <th>Course & Faculty Track</th>
                 <th>Fee Status</th>
                 <th>Biometrics & Clearance</th>
                 <th style="text-align:right;">Actions</th>
@@ -2040,9 +2057,12 @@ tr.candidate-row:hover td {
 
 <!-- ==================== WALK-IN REGISTRATION MODAL ==================== -->
 <div class="modal-overlay" id="walkInModal">
-  <div class="modal-box" style="max-width:520px;">
+  <div class="modal-box" style="max-width:580px;">
     <div class="modal-header">
-      <h3 style="font-size:15px;">Enroll Walk-in Candidate</h3>
+      <div>
+        <h3 style="font-size:15px;">Enroll Walk-in Candidate</h3>
+        <p style="font-size:11.5px; color:var(--muted); margin-top:1px;">Select candidate target course across all JUPEB faculties</p>
+      </div>
       <button class="drawer-close" onclick="closeWalkInModal()">
         <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
@@ -2071,44 +2091,175 @@ tr.candidate-row:hover td {
           </div>
         </div>
 
-        <div class="form-row-2">
-          <div class="form-group">
-            <label>Target Programme *</label>
-            <select id="wiCourse" class="form-input" required onchange="handleCourseChange(this.value)">
-              <option value="">Select Course</option>
-              <optgroup label="Faculty of Science">
-                <option value="Medicine & Surgery">Medicine & Surgery</option>
-                <option value="Pharmacy">Pharmacy</option>
-                <option value="Nursing Science">Nursing Science</option>
-                <option value="Computer Science">Computer Science</option>
-                <option value="Biochemistry">Biochemistry</option>
-                <option value="Microbiology">Microbiology</option>
-              </optgroup>
-              <optgroup label="Faculty of Arts & Law">
-                <option value="Law">Law</option>
-                <option value="Mass Communication">Mass Communication</option>
-                <option value="International Relations">International Relations</option>
-                <option value="English & Literary Studies">English & Literary Studies</option>
-              </optgroup>
-              <optgroup label="Faculty of Commercial">
-                <option value="Accounting">Accounting</option>
-                <option value="Business Administration">Business Administration</option>
-                <option value="Economics">Economics</option>
-                <option value="Banking & Finance">Banking & Finance</option>
-              </optgroup>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Faculty Track</label>
-            <select id="wiCategory" class="form-input">
-              <option value="Science">Science</option>
-              <option value="Arts">Arts</option>
-              <option value="Commercial">Commercial</option>
-            </select>
-          </div>
+        <div class="form-group">
+          <label>Target Programme (All Courses by Faculty) *</label>
+          <select id="wiCourse" class="form-input" required onchange="handleCourseChange(this.value)">
+            <option value="">-- Choose Desired Course of Study --</option>
+            
+            <!-- FACULTY OF SCIENCE: Medical & Health Sciences -->
+            <optgroup label="Faculty of Science — Medical & Health Sciences">
+              <option value="Medicine & Surgery">Medicine & Surgery</option>
+              <option value="Dentistry & Dental Surgery">Dentistry & Dental Surgery</option>
+              <option value="Pharmacy">Pharmacy</option>
+              <option value="Nursing Science">Nursing Science</option>
+              <option value="Medical Laboratory Science">Medical Laboratory Science</option>
+              <option value="Physiotherapy">Physiotherapy</option>
+              <option value="Radiography & Radiation Science">Radiography & Radiation Science</option>
+              <option value="Human Anatomy">Human Anatomy</option>
+              <option value="Human Physiology">Human Physiology</option>
+              <option value="Public Health Science">Public Health Science</option>
+              <option value="Optometry">Optometry</option>
+              <option value="Pharmacology & Therapeutics">Pharmacology & Therapeutics</option>
+              <option value="Veterinary Medicine">Veterinary Medicine</option>
+            </optgroup>
+
+            <!-- FACULTY OF SCIENCE: Engineering & Technology -->
+            <optgroup label="Faculty of Science — Engineering & Technology">
+              <option value="Computer Engineering">Computer Engineering</option>
+              <option value="Electrical & Electronics Engineering">Electrical & Electronics Engineering</option>
+              <option value="Mechanical Engineering">Mechanical Engineering</option>
+              <option value="Civil Engineering">Civil Engineering</option>
+              <option value="Chemical Engineering">Chemical Engineering</option>
+              <option value="Petroleum & Gas Engineering">Petroleum & Gas Engineering</option>
+              <option value="Mechatronics Engineering">Mechatronics Engineering</option>
+              <option value="Biomedical Engineering">Biomedical Engineering</option>
+              <option value="Software Engineering">Software Engineering</option>
+              <option value="Systems Engineering">Systems Engineering</option>
+              <option value="Agricultural & Bio-Resources Engineering">Agricultural & Bio-Resources Engineering</option>
+              <option value="Metallurgical & Materials Engineering">Metallurgical & Materials Engineering</option>
+              <option value="Marine Engineering">Marine Engineering</option>
+              <option value="Industrial & Production Engineering">Industrial & Production Engineering</option>
+              <option value="Aerospace Engineering">Aerospace Engineering</option>
+              <option value="Telecommunication Engineering">Telecommunication Engineering</option>
+            </optgroup>
+
+            <!-- FACULTY OF SCIENCE: Computing, Physical & Life Sciences -->
+            <optgroup label="Faculty of Science — Computing, Physical & Life Sciences">
+              <option value="Computer Science">Computer Science</option>
+              <option value="Cybersecurity">Cybersecurity</option>
+              <option value="Data Science & Artificial Intelligence">Data Science & Artificial Intelligence</option>
+              <option value="Information Technology">Information Technology</option>
+              <option value="Biochemistry">Biochemistry</option>
+              <option value="Microbiology">Microbiology</option>
+              <option value="Biotechnology">Biotechnology</option>
+              <option value="Industrial Chemistry">Industrial Chemistry</option>
+              <option value="Pure & Applied Chemistry">Pure & Applied Chemistry</option>
+              <option value="Physics with Electronics">Physics with Electronics</option>
+              <option value="Pure & Applied Physics">Pure & Applied Physics</option>
+              <option value="Mathematics">Mathematics</option>
+              <option value="Statistics">Statistics</option>
+              <option value="Geology & Earth Science">Geology & Earth Science</option>
+              <option value="Applied Geophysics">Applied Geophysics</option>
+              <option value="Plant Biology & Biotechnology (Botany)">Plant Biology & Biotechnology (Botany)</option>
+              <option value="Zoology & Environmental Biology">Zoology & Environmental Biology</option>
+              <option value="Marine Science & Oceanography">Marine Science & Oceanography</option>
+              <option value="Science Laboratory Technology">Science Laboratory Technology</option>
+            </optgroup>
+
+            <!-- FACULTY OF SCIENCE: Environmental Sciences & Built Environment -->
+            <optgroup label="Faculty of Science — Environmental Sciences & Built Environment">
+              <option value="Architecture">Architecture</option>
+              <option value="Estate Management">Estate Management</option>
+              <option value="Quantity Surveying">Quantity Surveying</option>
+              <option value="Building Technology">Building Technology</option>
+              <option value="Urban & Regional Planning">Urban & Regional Planning</option>
+              <option value="Surveying & Geoinformatics">Surveying & Geoinformatics</option>
+              <option value="Environmental Management & Toxicology">Environmental Management & Toxicology</option>
+            </optgroup>
+
+            <!-- FACULTY OF SCIENCE: Agriculture & Natural Resources -->
+            <optgroup label="Faculty of Science — Agriculture & Natural Resources">
+              <option value="Agricultural Economics & Farm Management">Agricultural Economics & Farm Management</option>
+              <option value="Animal Science & Nutrition">Animal Science & Nutrition</option>
+              <option value="Crop Production & Agronomy">Crop Production & Agronomy</option>
+              <option value="Soil Science & Land Management">Soil Science & Land Management</option>
+              <option value="Fisheries & Aquaculture">Fisheries & Aquaculture</option>
+              <option value="Forestry & Wildlife Management">Forestry & Wildlife Management</option>
+              <option value="Food Science & Technology">Food Science & Technology</option>
+              <option value="Agricultural Extension & Rural Sociology">Agricultural Extension & Rural Sociology</option>
+            </optgroup>
+
+            <!-- FACULTY OF ARTS & LAW: Law & Legal Studies -->
+            <optgroup label="Faculty of Arts & Law — Law & Legal Studies">
+              <option value="Law">Law</option>
+              <option value="Common & Islamic Law">Common & Islamic Law</option>
+              <option value="International Law & Jurisprudence">International Law & Jurisprudence</option>
+              <option value="Commercial & Corporate Law">Commercial & Corporate Law</option>
+            </optgroup>
+
+            <!-- FACULTY OF ARTS & LAW: Arts & Humanities -->
+            <optgroup label="Faculty of Arts & Law — Arts & Humanities">
+              <option value="Mass Communication">Mass Communication</option>
+              <option value="International Relations & Diplomacy">International Relations & Diplomacy</option>
+              <option value="English Language & Literary Studies">English Language & Literary Studies</option>
+              <option value="History & Strategic Studies">History & Strategic Studies</option>
+              <option value="Linguistics & Nigerian Languages">Linguistics & Nigerian Languages</option>
+              <option value="French & International Studies">French & International Studies</option>
+              <option value="Philosophy">Philosophy</option>
+              <option value="Theatre & Performing Arts">Theatre & Performing Arts</option>
+              <option value="Music">Music</option>
+              <option value="Fine & Applied Arts">Fine & Applied Arts</option>
+              <option value="Christian Religious Studies (CRS)">Christian Religious Studies (CRS)</option>
+              <option value="Islamic Studies (IRS)">Islamic Studies (IRS)</option>
+            </optgroup>
+
+            <!-- FACULTY OF ARTS & LAW: Social & Behavioral Sciences -->
+            <optgroup label="Faculty of Arts & Law — Social & Behavioral Sciences">
+              <option value="Political Science">Political Science</option>
+              <option value="Sociology">Sociology</option>
+              <option value="Psychology">Psychology</option>
+              <option value="Criminology & Security Studies">Criminology & Security Studies</option>
+              <option value="Geography & Planning">Geography & Planning</option>
+              <option value="Peace & Conflict Resolution">Peace & Conflict Resolution</option>
+              <option value="Demography & Social Statistics">Demography & Social Statistics</option>
+              <option value="Social Work">Social Work</option>
+            </optgroup>
+
+            <!-- FACULTY OF COMMERCIAL: Management & Commercial Sciences -->
+            <optgroup label="Faculty of Commercial — Management & Commercial Sciences">
+              <option value="Accounting">Accounting</option>
+              <option value="Banking & Finance">Banking & Finance</option>
+              <option value="Business Administration">Business Administration</option>
+              <option value="Economics">Economics</option>
+              <option value="Marketing">Marketing</option>
+              <option value="Insurance & Actuarial Science">Insurance & Actuarial Science</option>
+              <option value="Industrial Relations & Personnel Management (IRPM)">Industrial Relations & Personnel Management (IRPM)</option>
+              <option value="Public Administration">Public Administration</option>
+              <option value="Entrepreneurship & Innovation">Entrepreneurship & Innovation</option>
+              <option value="Supply Chain & Logistics Management">Supply Chain & Logistics Management</option>
+              <option value="Taxation">Taxation</option>
+              <option value="Hospitality & Tourism Management">Hospitality & Tourism Management</option>
+            </optgroup>
+
+            <!-- FACULTY OF EDUCATION -->
+            <optgroup label="Faculty of Education">
+              <option value="Computer Science Education">Computer Science Education (Science Track)</option>
+              <option value="Mathematics Education">Mathematics Education (Science Track)</option>
+              <option value="Biology Education">Biology Education (Science Track)</option>
+              <option value="Chemistry Education">Chemistry Education (Science Track)</option>
+              <option value="Physics Education">Physics Education (Science Track)</option>
+              <option value="Human Kinetics & Health Education">Human Kinetics & Health Education (Science Track)</option>
+              <option value="English Education">English Education (Arts & Law Track)</option>
+              <option value="Political Science Education">Political Science Education (Arts & Law Track)</option>
+              <option value="Guidance & Counselling">Guidance & Counselling (Arts & Law Track)</option>
+              <option value="Educational Management & Planning">Educational Management & Planning (Arts & Law Track)</option>
+              <option value="Early Childhood Education">Early Childhood Education (Arts & Law Track)</option>
+              <option value="Adult Education">Adult Education (Arts & Law Track)</option>
+              <option value="Economics Education">Economics Education (Commercial Track)</option>
+              <option value="Business Education">Business Education (Commercial Track)</option>
+            </optgroup>
+          </select>
         </div>
 
         <div class="form-row-2">
+          <div class="form-group">
+            <label>Assigned Faculty Track</label>
+            <select id="wiCategory" class="form-input">
+              <option value="Science">Faculty of Science</option>
+              <option value="Arts">Faculty of Arts & Law</option>
+              <option value="Commercial">Faculty of Commercial</option>
+            </select>
+          </div>
           <div class="form-group">
             <label>Gender</label>
             <select id="wiGender" class="form-input">
@@ -2116,13 +2267,14 @@ tr.candidate-row:hover td {
               <option value="Female">Female</option>
             </select>
           </div>
-          <div class="form-group">
-            <label>Application Fee</label>
-            <select id="wiPaid" class="form-input">
-              <option value="paid">Paid (₦45,000 Receipt Confirmed)</option>
-              <option value="unpaid">Unpaid / Bank Transfer Pending</option>
-            </select>
-          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Application Fee Status</label>
+          <select id="wiPaid" class="form-input">
+            <option value="paid">Paid (₦45,000 Receipt Confirmed)</option>
+            <option value="unpaid">Unpaid / Bank Transfer Pending</option>
+          </select>
         </div>
 
         <div class="modal-footer" style="padding:14px 0 0; margin-top:8px; border-top:none; background:transparent;">
@@ -2136,9 +2288,12 @@ tr.candidate-row:hover td {
 
 <!-- ==================== EDIT CANDIDATE MODAL ==================== -->
 <div class="modal-overlay" id="editCandidateModal">
-  <div class="modal-box" style="max-width:540px;">
+  <div class="modal-box" style="max-width:580px;">
     <div class="modal-header">
-      <h3 style="font-size:15px;">Edit Candidate Information</h3>
+      <div>
+        <h3 style="font-size:15px;">Edit Candidate Information</h3>
+        <p style="font-size:11.5px; color:var(--muted); margin-top:1px;">Update biodata, academic course, faculty track and clearance</p>
+      </div>
       <button class="drawer-close" onclick="closeEditCandidateModal()">
         <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
@@ -2168,17 +2323,180 @@ tr.candidate-row:hover td {
           </div>
         </div>
 
+        <div class="form-group">
+          <label>Course of Study (All Faculties)</label>
+          <select id="editCourse" class="form-input" required onchange="handleEditCourseChange(this.value)">
+            <option value="">-- Select Course of Study --</option>
+            
+            <!-- FACULTY OF SCIENCE: Medical & Health Sciences -->
+            <optgroup label="Faculty of Science — Medical & Health Sciences">
+              <option value="Medicine & Surgery">Medicine & Surgery</option>
+              <option value="Dentistry & Dental Surgery">Dentistry & Dental Surgery</option>
+              <option value="Pharmacy">Pharmacy</option>
+              <option value="Nursing Science">Nursing Science</option>
+              <option value="Medical Laboratory Science">Medical Laboratory Science</option>
+              <option value="Physiotherapy">Physiotherapy</option>
+              <option value="Radiography & Radiation Science">Radiography & Radiation Science</option>
+              <option value="Human Anatomy">Human Anatomy</option>
+              <option value="Human Physiology">Human Physiology</option>
+              <option value="Public Health Science">Public Health Science</option>
+              <option value="Optometry">Optometry</option>
+              <option value="Pharmacology & Therapeutics">Pharmacology & Therapeutics</option>
+              <option value="Veterinary Medicine">Veterinary Medicine</option>
+            </optgroup>
+
+            <!-- FACULTY OF SCIENCE: Engineering & Technology -->
+            <optgroup label="Faculty of Science — Engineering & Technology">
+              <option value="Computer Engineering">Computer Engineering</option>
+              <option value="Electrical & Electronics Engineering">Electrical & Electronics Engineering</option>
+              <option value="Mechanical Engineering">Mechanical Engineering</option>
+              <option value="Civil Engineering">Civil Engineering</option>
+              <option value="Chemical Engineering">Chemical Engineering</option>
+              <option value="Petroleum & Gas Engineering">Petroleum & Gas Engineering</option>
+              <option value="Mechatronics Engineering">Mechatronics Engineering</option>
+              <option value="Biomedical Engineering">Biomedical Engineering</option>
+              <option value="Software Engineering">Software Engineering</option>
+              <option value="Systems Engineering">Systems Engineering</option>
+              <option value="Agricultural & Bio-Resources Engineering">Agricultural & Bio-Resources Engineering</option>
+              <option value="Metallurgical & Materials Engineering">Metallurgical & Materials Engineering</option>
+              <option value="Marine Engineering">Marine Engineering</option>
+              <option value="Industrial & Production Engineering">Industrial & Production Engineering</option>
+              <option value="Aerospace Engineering">Aerospace Engineering</option>
+              <option value="Telecommunication Engineering">Telecommunication Engineering</option>
+            </optgroup>
+
+            <!-- FACULTY OF SCIENCE: Computing, Physical & Life Sciences -->
+            <optgroup label="Faculty of Science — Computing, Physical & Life Sciences">
+              <option value="Computer Science">Computer Science</option>
+              <option value="Cybersecurity">Cybersecurity</option>
+              <option value="Data Science & Artificial Intelligence">Data Science & Artificial Intelligence</option>
+              <option value="Information Technology">Information Technology</option>
+              <option value="Biochemistry">Biochemistry</option>
+              <option value="Microbiology">Microbiology</option>
+              <option value="Biotechnology">Biotechnology</option>
+              <option value="Industrial Chemistry">Industrial Chemistry</option>
+              <option value="Pure & Applied Chemistry">Pure & Applied Chemistry</option>
+              <option value="Physics with Electronics">Physics with Electronics</option>
+              <option value="Pure & Applied Physics">Pure & Applied Physics</option>
+              <option value="Mathematics">Mathematics</option>
+              <option value="Statistics">Statistics</option>
+              <option value="Geology & Earth Science">Geology & Earth Science</option>
+              <option value="Applied Geophysics">Applied Geophysics</option>
+              <option value="Plant Biology & Biotechnology (Botany)">Plant Biology & Biotechnology (Botany)</option>
+              <option value="Zoology & Environmental Biology">Zoology & Environmental Biology</option>
+              <option value="Marine Science & Oceanography">Marine Science & Oceanography</option>
+              <option value="Science Laboratory Technology">Science Laboratory Technology</option>
+            </optgroup>
+
+            <!-- FACULTY OF SCIENCE: Environmental Sciences & Built Environment -->
+            <optgroup label="Faculty of Science — Environmental Sciences & Built Environment">
+              <option value="Architecture">Architecture</option>
+              <option value="Estate Management">Estate Management</option>
+              <option value="Quantity Surveying">Quantity Surveying</option>
+              <option value="Building Technology">Building Technology</option>
+              <option value="Urban & Regional Planning">Urban & Regional Planning</option>
+              <option value="Surveying & Geoinformatics">Surveying & Geoinformatics</option>
+              <option value="Environmental Management & Toxicology">Environmental Management & Toxicology</option>
+            </optgroup>
+
+            <!-- FACULTY OF SCIENCE: Agriculture & Natural Resources -->
+            <optgroup label="Faculty of Science — Agriculture & Natural Resources">
+              <option value="Agricultural Economics & Farm Management">Agricultural Economics & Farm Management</option>
+              <option value="Animal Science & Nutrition">Animal Science & Nutrition</option>
+              <option value="Crop Production & Agronomy">Crop Production & Agronomy</option>
+              <option value="Soil Science & Land Management">Soil Science & Land Management</option>
+              <option value="Fisheries & Aquaculture">Fisheries & Aquaculture</option>
+              <option value="Forestry & Wildlife Management">Forestry & Wildlife Management</option>
+              <option value="Food Science & Technology">Food Science & Technology</option>
+              <option value="Agricultural Extension & Rural Sociology">Agricultural Extension & Rural Sociology</option>
+            </optgroup>
+
+            <!-- FACULTY OF ARTS & LAW: Law & Legal Studies -->
+            <optgroup label="Faculty of Arts & Law — Law & Legal Studies">
+              <option value="Law">Law</option>
+              <option value="Common & Islamic Law">Common & Islamic Law</option>
+              <option value="International Law & Jurisprudence">International Law & Jurisprudence</option>
+              <option value="Commercial & Corporate Law">Commercial & Corporate Law</option>
+            </optgroup>
+
+            <!-- FACULTY OF ARTS & LAW: Arts & Humanities -->
+            <optgroup label="Faculty of Arts & Law — Arts & Humanities">
+              <option value="Mass Communication">Mass Communication</option>
+              <option value="International Relations & Diplomacy">International Relations & Diplomacy</option>
+              <option value="English Language & Literary Studies">English Language & Literary Studies</option>
+              <option value="History & Strategic Studies">History & Strategic Studies</option>
+              <option value="Linguistics & Nigerian Languages">Linguistics & Nigerian Languages</option>
+              <option value="French & International Studies">French & International Studies</option>
+              <option value="Philosophy">Philosophy</option>
+              <option value="Theatre & Performing Arts">Theatre & Performing Arts</option>
+              <option value="Music">Music</option>
+              <option value="Fine & Applied Arts">Fine & Applied Arts</option>
+              <option value="Christian Religious Studies (CRS)">Christian Religious Studies (CRS)</option>
+              <option value="Islamic Studies (IRS)">Islamic Studies (IRS)</option>
+            </optgroup>
+
+            <!-- FACULTY OF ARTS & LAW: Social & Behavioral Sciences -->
+            <optgroup label="Faculty of Arts & Law — Social & Behavioral Sciences">
+              <option value="Political Science">Political Science</option>
+              <option value="Sociology">Sociology</option>
+              <option value="Psychology">Psychology</option>
+              <option value="Criminology & Security Studies">Criminology & Security Studies</option>
+              <option value="Geography & Planning">Geography & Planning</option>
+              <option value="Peace & Conflict Resolution">Peace & Conflict Resolution</option>
+              <option value="Demography & Social Statistics">Demography & Social Statistics</option>
+              <option value="Social Work">Social Work</option>
+            </optgroup>
+
+            <!-- FACULTY OF COMMERCIAL: Management & Commercial Sciences -->
+            <optgroup label="Faculty of Commercial — Management & Commercial Sciences">
+              <option value="Accounting">Accounting</option>
+              <option value="Banking & Finance">Banking & Finance</option>
+              <option value="Business Administration">Business Administration</option>
+              <option value="Economics">Economics</option>
+              <option value="Marketing">Marketing</option>
+              <option value="Insurance & Actuarial Science">Insurance & Actuarial Science</option>
+              <option value="Industrial Relations & Personnel Management (IRPM)">Industrial Relations & Personnel Management (IRPM)</option>
+              <option value="Public Administration">Public Administration</option>
+              <option value="Entrepreneurship & Innovation">Entrepreneurship & Innovation</option>
+              <option value="Supply Chain & Logistics Management">Supply Chain & Logistics Management</option>
+              <option value="Taxation">Taxation</option>
+              <option value="Hospitality & Tourism Management">Hospitality & Tourism Management</option>
+            </optgroup>
+
+            <!-- FACULTY OF EDUCATION -->
+            <optgroup label="Faculty of Education">
+              <option value="Computer Science Education">Computer Science Education (Science Track)</option>
+              <option value="Mathematics Education">Mathematics Education (Science Track)</option>
+              <option value="Biology Education">Biology Education (Science Track)</option>
+              <option value="Chemistry Education">Chemistry Education (Science Track)</option>
+              <option value="Physics Education">Physics Education (Science Track)</option>
+              <option value="Human Kinetics & Health Education">Human Kinetics & Health Education (Science Track)</option>
+              <option value="English Education">English Education (Arts & Law Track)</option>
+              <option value="Political Science Education">Political Science Education (Arts & Law Track)</option>
+              <option value="Guidance & Counselling">Guidance & Counselling (Arts & Law Track)</option>
+              <option value="Educational Management & Planning">Educational Management & Planning (Arts & Law Track)</option>
+              <option value="Early Childhood Education">Early Childhood Education (Arts & Law Track)</option>
+              <option value="Adult Education">Adult Education (Arts & Law Track)</option>
+              <option value="Economics Education">Economics Education (Commercial Track)</option>
+              <option value="Business Education">Business Education (Commercial Track)</option>
+            </optgroup>
+          </select>
+        </div>
+
         <div class="form-row-2">
-          <div class="form-group">
-            <label>Course</label>
-            <input type="text" id="editCourse" class="form-input" required>
-          </div>
           <div class="form-group">
             <label>Faculty Track</label>
             <select id="editCategory" class="form-input">
-              <option value="Science">Science</option>
-              <option value="Arts">Arts</option>
-              <option value="Commercial">Commercial</option>
+              <option value="Science">Faculty of Science</option>
+              <option value="Arts">Faculty of Arts & Law</option>
+              <option value="Commercial">Faculty of Commercial</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Fee Status</label>
+            <select id="editPaymentStatus" class="form-input">
+              <option value="paid">Fee Paid</option>
+              <option value="unpaid">Unpaid</option>
             </select>
           </div>
         </div>
@@ -2194,21 +2512,12 @@ tr.candidate-row:hover td {
           </div>
         </div>
 
-        <div class="form-row-2">
-          <div class="form-group">
-            <label>Fee Status</label>
-            <select id="editPaymentStatus" class="form-input">
-              <option value="paid">Fee Paid</option>
-              <option value="unpaid">Unpaid</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Clearance Status</label>
-            <select id="editClearanceStatus" class="form-input">
-              <option value="complete">Cleared & Matriculated</option>
-              <option value="pending">Pending Clearance</option>
-            </select>
-          </div>
+        <div class="form-group">
+          <label>Clearance Status</label>
+          <select id="editClearanceStatus" class="form-input">
+            <option value="complete">Cleared & Matriculated</option>
+            <option value="pending">Pending Clearance</option>
+          </select>
         </div>
 
         <div class="modal-footer" style="padding:14px 0 0; margin-top:8px; border-top:none; background:transparent;">
@@ -2328,6 +2637,180 @@ tr.candidate-row:hover td {
   let scannerAgentUrl = localStorage.getItem('bia_scanner_agent_url') || 'http://127.0.0.1:9002/capture';
   let scannerModel = localStorage.getItem('bia_scanner_model') || 'secugen';
 
+  // Comprehensive Course-to-Faculty Mapping Directory
+  const COURSE_FACULTY_MAP = {
+    // Medical & Health Sciences -> Science
+    'Medicine & Surgery': 'Science',
+    'Dentistry & Dental Surgery': 'Science',
+    'Pharmacy': 'Science',
+    'Nursing Science': 'Science',
+    'Medical Laboratory Science': 'Science',
+    'Physiotherapy': 'Science',
+    'Radiography & Radiation Science': 'Science',
+    'Human Anatomy': 'Science',
+    'Human Physiology': 'Science',
+    'Public Health Science': 'Science',
+    'Optometry': 'Science',
+    'Pharmacology & Therapeutics': 'Science',
+    'Veterinary Medicine': 'Science',
+
+    // Engineering & Technology -> Science
+    'Computer Engineering': 'Science',
+    'Electrical & Electronics Engineering': 'Science',
+    'Mechanical Engineering': 'Science',
+    'Civil Engineering': 'Science',
+    'Chemical Engineering': 'Science',
+    'Petroleum & Gas Engineering': 'Science',
+    'Mechatronics Engineering': 'Science',
+    'Biomedical Engineering': 'Science',
+    'Software Engineering': 'Science',
+    'Systems Engineering': 'Science',
+    'Agricultural & Bio-Resources Engineering': 'Science',
+    'Metallurgical & Materials Engineering': 'Science',
+    'Marine Engineering': 'Science',
+    'Industrial & Production Engineering': 'Science',
+    'Aerospace Engineering': 'Science',
+    'Telecommunication Engineering': 'Science',
+
+    // Computing, Physical & Life Sciences -> Science
+    'Computer Science': 'Science',
+    'Cybersecurity': 'Science',
+    'Data Science & Artificial Intelligence': 'Science',
+    'Information Technology': 'Science',
+    'Biochemistry': 'Science',
+    'Microbiology': 'Science',
+    'Biotechnology': 'Science',
+    'Industrial Chemistry': 'Science',
+    'Pure & Applied Chemistry': 'Science',
+    'Physics with Electronics': 'Science',
+    'Pure & Applied Physics': 'Science',
+    'Mathematics': 'Science',
+    'Statistics': 'Science',
+    'Geology & Earth Science': 'Science',
+    'Applied Geophysics': 'Science',
+    'Plant Biology & Biotechnology (Botany)': 'Science',
+    'Zoology & Environmental Biology': 'Science',
+    'Marine Science & Oceanography': 'Science',
+    'Science Laboratory Technology': 'Science',
+
+    // Environmental Sciences & Built Environment -> Science
+    'Architecture': 'Science',
+    'Estate Management': 'Science',
+    'Quantity Surveying': 'Science',
+    'Building Technology': 'Science',
+    'Urban & Regional Planning': 'Science',
+    'Surveying & Geoinformatics': 'Science',
+    'Environmental Management & Toxicology': 'Science',
+
+    // Agriculture & Natural Resources -> Science
+    'Agricultural Economics & Farm Management': 'Science',
+    'Animal Science & Nutrition': 'Science',
+    'Crop Production & Agronomy': 'Science',
+    'Soil Science & Land Management': 'Science',
+    'Fisheries & Aquaculture': 'Science',
+    'Forestry & Wildlife Management': 'Science',
+    'Food Science & Technology': 'Science',
+    'Agricultural Extension & Rural Sociology': 'Science',
+
+    // Law & Legal Studies -> Arts & Law
+    'Law': 'Arts',
+    'Common & Islamic Law': 'Arts',
+    'International Law & Jurisprudence': 'Arts',
+    'Commercial & Corporate Law': 'Arts',
+
+    // Arts & Humanities -> Arts & Law
+    'Mass Communication': 'Arts',
+    'International Relations & Diplomacy': 'Arts',
+    'English Language & Literary Studies': 'Arts',
+    'History & Strategic Studies': 'Arts',
+    'Linguistics & Nigerian Languages': 'Arts',
+    'French & International Studies': 'Arts',
+    'Philosophy': 'Arts',
+    'Theatre & Performing Arts': 'Arts',
+    'Music': 'Arts',
+    'Fine & Applied Arts': 'Arts',
+    'Christian Religious Studies (CRS)': 'Arts',
+    'Islamic Studies (IRS)': 'Arts',
+
+    // Social & Behavioral Sciences -> Arts & Law
+    'Political Science': 'Arts',
+    'Sociology': 'Arts',
+    'Psychology': 'Arts',
+    'Criminology & Security Studies': 'Arts',
+    'Geography & Planning': 'Arts',
+    'Peace & Conflict Resolution': 'Arts',
+    'Demography & Social Statistics': 'Arts',
+    'Social Work': 'Arts',
+
+    // Management & Commercial Sciences -> Commercial
+    'Accounting': 'Commercial',
+    'Banking & Finance': 'Commercial',
+    'Business Administration': 'Commercial',
+    'Economics': 'Commercial',
+    'Marketing': 'Commercial',
+    'Insurance & Actuarial Science': 'Commercial',
+    'Industrial Relations & Personnel Management (IRPM)': 'Commercial',
+    'Public Administration': 'Commercial',
+    'Entrepreneurship & Innovation': 'Commercial',
+    'Supply Chain & Logistics Management': 'Commercial',
+    'Taxation': 'Commercial',
+    'Hospitality & Tourism Management': 'Commercial',
+
+    // Education Courses
+    'Computer Science Education': 'Science',
+    'Mathematics Education': 'Science',
+    'Biology Education': 'Science',
+    'Chemistry Education': 'Science',
+    'Physics Education': 'Science',
+    'Human Kinetics & Health Education': 'Science',
+    'English Education': 'Arts',
+    'Political Science Education': 'Arts',
+    'Guidance & Counselling': 'Arts',
+    'Educational Management & Planning': 'Arts',
+    'Early Childhood Education': 'Arts',
+    'Adult Education': 'Arts',
+    'Economics Education': 'Commercial',
+    'Business Education': 'Commercial'
+  };
+
+  // Helper to determine Faculty Track
+  function getFacultyForCourse(courseName) {
+    if (!courseName) return 'Science';
+    if (COURSE_FACULTY_MAP[courseName]) {
+      return COURSE_FACULTY_MAP[courseName];
+    }
+    const cLower = courseName.toLowerCase();
+    
+    // Commercial Keywords
+    if (
+      cLower.includes('account') || cLower.includes('bank') || cLower.includes('business') ||
+      cLower.includes('econ') || cLower.includes('market') || cLower.includes('insur') ||
+      cLower.includes('actuar') || cLower.includes('personnel') || cLower.includes('irpm') ||
+      cLower.includes('tax') || cLower.includes('logistics') || cLower.includes('supply') ||
+      cLower.includes('finance') || cLower.includes('public admin') || cLower.includes('hospitality') ||
+      cLower.includes('entrepreneur')
+    ) {
+      return 'Commercial';
+    }
+
+    // Arts & Law Keywords
+    if (
+      cLower.includes('law') || cLower.includes('legal') || cLower.includes('jurisprudence') ||
+      cLower.includes('mass com') || cLower.includes('media') || cLower.includes('relation') ||
+      cLower.includes('english') || cLower.includes('history') || cLower.includes('linguist') ||
+      cLower.includes('french') || cLower.includes('philosophy') || cLower.includes('theatre') ||
+      cLower.includes('music') || cLower.includes('art') || cLower.includes('religio') ||
+      cLower.includes('islam') || cLower.includes('crs') || cLower.includes('politi') ||
+      cLower.includes('socio') || cLower.includes('psych') || cLower.includes('criminol') ||
+      cLower.includes('peace') || cLower.includes('demograph') || cLower.includes('social work') ||
+      cLower.includes('literature') || cLower.includes('counselling')
+    ) {
+      return 'Arts';
+    }
+
+    return 'Science';
+  }
+
   // Initialize Supabase & Realtime
   try {
     if (window.supabase) {
@@ -2355,10 +2838,10 @@ tr.candidate-row:hover td {
   // Fallback candidate dataset
   const defaultFallbackStudents = [
     { name: 'Oluwafisayomi Olatunde', surname: 'Olatunde', firstName: 'Oluwafisayomi', ref: 'BJSC202627/1001', matricNo: 'BJSC202627/1001', course: 'Medicine & Surgery', category: 'Science', paid: true, status: 'complete', phone: '08156941411', email: 'fisayomi.olatunde@gmail.com', gender: 'Male', stateOfOrigin: 'Ogun', lga: 'Odogbolu', created_at: '2026-08-20T10:15:00Z', biometrics_cleared: true, face_captured: true },
-    { name: 'Chiamaka Nwosu', surname: 'Nwosu', firstName: 'Chiamaka', ref: 'BJSC202627/1002', matricNo: 'BJSC202627/1002', course: 'Mass Communication', category: 'Arts', paid: true, status: 'pending', phone: '08031234567', email: 'chiamaka.nwosu@yahoo.com', gender: 'Female', stateOfOrigin: 'Anambra', lga: 'Awka South', created_at: '2026-08-21T11:30:00Z', biometrics_cleared: false, face_captured: false },
-    { name: 'Ibrahim Suleiman', surname: 'Suleiman', firstName: 'Ibrahim', ref: 'BJSC202627/1003', matricNo: 'BJSC202627/1003', course: 'Accounting', category: 'Commercial', paid: false, status: 'pending', phone: '09029876543', email: 'ibrahim.s@gmail.com', gender: 'Male', stateOfOrigin: 'Kano', lga: 'Nassarawa', created_at: '2026-08-22T09:20:00Z', biometrics_cleared: false, face_captured: false },
+    { name: 'Chiamaka Nwosu', surname: 'Nwosu', firstName: 'Chiamaka', ref: 'BJAR202627/1002', matricNo: 'BJAR202627/1002', course: 'Mass Communication', category: 'Arts', paid: true, status: 'pending', phone: '08031234567', email: 'chiamaka.nwosu@yahoo.com', gender: 'Female', stateOfOrigin: 'Anambra', lga: 'Awka South', created_at: '2026-08-21T11:30:00Z', biometrics_cleared: false, face_captured: false },
+    { name: 'Ibrahim Suleiman', surname: 'Suleiman', firstName: 'Ibrahim', ref: 'BJCM202627/1003', matricNo: 'BJCM202627/1003', course: 'Accounting', category: 'Commercial', paid: false, status: 'pending', phone: '09029876543', email: 'ibrahim.s@gmail.com', gender: 'Male', stateOfOrigin: 'Kano', lga: 'Nassarawa', created_at: '2026-08-22T09:20:00Z', biometrics_cleared: false, face_captured: false },
     { name: 'Grace Adeyemi', surname: 'Adeyemi', firstName: 'Grace', ref: 'BJSC202627/1004', matricNo: 'BJSC202627/1004', course: 'Pharmacy', category: 'Science', paid: true, status: 'complete', phone: '07064567890', email: 'grace.adeyemi@hotmail.com', gender: 'Female', stateOfOrigin: 'Ondo', lga: 'Akure South', created_at: '2026-08-23T14:45:00Z', biometrics_cleared: true, face_captured: true },
-    { name: 'Tunde Bakare', surname: 'Bakare', firstName: 'Tunde', ref: 'BJSC202627/1005', matricNo: 'BJSC202627/1005', course: 'Law', category: 'Arts', paid: false, status: 'pending', phone: '08112345678', email: 'tundebakare@gmail.com', gender: 'Male', stateOfOrigin: 'Lagos', lga: 'Ikeja', created_at: '2026-08-24T16:10:00Z', biometrics_cleared: false, face_captured: false },
+    { name: 'Tunde Bakare', surname: 'Bakare', firstName: 'Tunde', ref: 'BJAR202627/1005', matricNo: 'BJAR202627/1005', course: 'Law', category: 'Arts', paid: false, status: 'pending', phone: '08112345678', email: 'tundebakare@gmail.com', gender: 'Male', stateOfOrigin: 'Lagos', lga: 'Ikeja', created_at: '2026-08-24T16:10:00Z', biometrics_cleared: false, face_captured: false },
     { name: 'Amina Bello', surname: 'Bello', firstName: 'Amina', ref: 'BJSC202627/1006', matricNo: 'BJSC202627/1006', course: 'Computer Science', category: 'Science', paid: true, status: 'complete', phone: '08091122334', email: 'amina.bello@gmail.com', gender: 'Female', stateOfOrigin: 'Kaduna', lga: 'Zaria', created_at: '2026-08-25T08:00:00Z', biometrics_cleared: true, face_captured: true }
   ];
 
@@ -2383,19 +2866,12 @@ tr.candidate-row:hover td {
     const middleName = raw.middleName || raw.otherNames || raw.other_names || '';
     const name = raw.name || `${surname} ${firstName} ${middleName}`.trim() || 'Candidate';
     const ref = String(raw.ref || raw.ref_number || raw.matricNo || raw.matric_no || 'BJSC202627/1001');
-    const course = raw.course || raw.programme || 'JUPEB Foundation Track';
+    const course = raw.course || raw.programme || 'Medicine & Surgery';
     
-    let category = raw.category;
-    if (!category) {
-      const cLower = course.toLowerCase();
-      if (cLower.includes('medicine') || cLower.includes('pharmacy') || cLower.includes('science') || cLower.includes('engineering') || cLower.includes('nursing') || cLower.includes('dentistry') || cLower.includes('computer') || cLower.includes('biochem') || cLower.includes('microbiology')) {
-        category = 'Science';
-      } else if (cLower.includes('accounting') || cLower.includes('banking') || cLower.includes('business') || cLower.includes('economics') || cLower.includes('finance')) {
-        category = 'Commercial';
-      } else {
-        category = 'Arts';
-      }
-    }
+    let category = raw.category || getFacultyForCourse(course);
+    if (category.toLowerCase().includes('sci')) category = 'Science';
+    else if (category.toLowerCase().includes('art') || category.toLowerCase().includes('law')) category = 'Arts';
+    else if (category.toLowerCase().includes('comm') || category.toLowerCase().includes('mgt') || category.toLowerCase().includes('bus')) category = 'Commercial';
 
     const isComplete = (raw.status === 'complete' || raw.status === 'Registered' || raw.status === 'cleared' || raw.biometrics_cleared === true);
     const isPaid = (raw.paid === true || raw.payment_status === 'paid' || isComplete);
@@ -2584,6 +3060,7 @@ tr.candidate-row:hover td {
         const initials = s.name.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'ST';
         const categoryClass = s.category || 'default';
         const photoSrc = s.face_photo_url || (s.raw && (s.raw.photo_url || s.raw.photo)) || null;
+        const facultyDisplay = s.category === 'Science' ? 'Faculty of Science' : (s.category === 'Arts' ? 'Faculty of Arts & Law' : 'Faculty of Commercial');
 
         return `
           <tr class="candidate-row" onclick="openStudentDrawer('${s.ref}')">
@@ -2607,7 +3084,7 @@ tr.candidate-row:hover td {
             <td>
               <div style="font-weight:700; font-size:13px; color:var(--ink);">${s.course}</div>
               <div style="margin-top:2px;">
-                <span class="track-tag ${categoryClass}">${s.category} Track</span>
+                <span class="track-tag ${categoryClass}">${facultyDisplay}</span>
               </div>
             </td>
             <td>
@@ -2739,6 +3216,7 @@ tr.candidate-row:hover td {
     activeStudentDrawerRef = ref;
     const initials = student.name.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'ST';
     const photoSrc = student.face_photo_url || (student.raw && (student.raw.photo_url || student.raw.photo)) || null;
+    const facultyDisplay = student.category === 'Science' ? 'Faculty of Science' : (student.category === 'Arts' ? 'Faculty of Arts & Law' : 'Faculty of Commercial');
 
     const body = document.getElementById('drawerBody');
     body.innerHTML = `
@@ -2750,7 +3228,7 @@ tr.candidate-row:hover td {
           <div style="font-size:16px; font-weight:800; color:var(--ink);">${student.name}</div>
           <div class="mono" style="font-size:12px; color:var(--slate); margin-top:2px;">Reg No: ${student.ref}</div>
           <div style="margin-top:6px; display:flex; gap:5px; flex-wrap:wrap;">
-            <span class="track-tag ${student.category}">${student.category}</span>
+            <span class="track-tag ${student.category}">${facultyDisplay}</span>
             <span class="status-pill ${student.paid ? 'paid' : 'unpaid'}">${student.paid ? 'Paid' : 'Unpaid'}</span>
             <span class="status-pill ${student.status === 'complete' ? 'complete' : 'pending'}">${student.status === 'complete' ? 'Cleared' : 'Pending'}</span>
           </div>
@@ -2788,7 +3266,7 @@ tr.candidate-row:hover td {
 
       <div class="drawer-section">
         <div class="drawer-sec-title">
-          <span>Academic Programme & Intake</span>
+          <span>Academic Programme & Faculty</span>
         </div>
         <div class="drawer-grid">
           <div class="drawer-item" style="grid-column:1/-1;">
@@ -2796,8 +3274,8 @@ tr.candidate-row:hover td {
             <div class="v" style="font-size:13.5px; color:var(--red-dark); font-weight:800;">${student.course}</div>
           </div>
           <div class="drawer-item">
-            <div class="k">Faculty Track</div>
-            <div class="v">${student.category} Track</div>
+            <div class="k">Assigned Faculty</div>
+            <div class="v">${facultyDisplay}</div>
           </div>
           <div class="drawer-item">
             <div class="k">Enrolled Date</div>
@@ -2899,7 +3377,7 @@ tr.candidate-row:hover td {
     const select = document.getElementById('bioTargetCandidateSelect');
     if (!select) return;
     select.innerHTML = allStudents.map(s => `
-      <option value="${s.ref}">${s.name} (${s.ref}) — ${s.course}</option>
+      <option value="${s.ref}">${s.name} (${s.ref}) — ${s.course} [${s.category}]</option>
     `).join('');
   }
 
@@ -2956,7 +3434,7 @@ tr.candidate-row:hover td {
 
     document.getElementById('bioCapturedCountBadge').textContent = `${count} / 10 Captured`;
     document.getElementById('scannerStatusHeadline').textContent = `Target: ${s.name}`;
-    document.getElementById('scannerSubHeadline').textContent = `${s.ref} • ${s.course}`;
+    document.getElementById('scannerSubHeadline').textContent = `${s.ref} • ${s.course} (${s.category})`;
 
     // Face photo check
     const imgEl = document.getElementById('bioModalFaceImg');
@@ -3156,6 +3634,7 @@ tr.candidate-row:hover td {
 
     const photoSrc = match.face_photo_url || (match.raw && (match.raw.photo_url || match.raw.photo)) || null;
     const initials = match.name.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+    const facultyDisplay = match.category === 'Science' ? 'Faculty of Science' : (match.category === 'Arts' ? 'Faculty of Arts & Law' : 'Faculty of Commercial');
 
     area.innerHTML = `
       <div style="background:#ECFDF5; border:1.5px solid #A7F3D0; border-radius:var(--radius-md); padding:14px;">
@@ -3166,7 +3645,7 @@ tr.candidate-row:hover td {
           <div style="flex:1;">
             <div style="font-size:11px; font-weight:800; color:#047857; text-transform:uppercase;">✓ Biometric Verification Match (99.8% Confidence)</div>
             <div style="font-size:15px; font-weight:800; color:#101113;">${match.name}</div>
-            <div class="mono" style="font-size:12px; color:#475569;">${match.ref} &bull; ${match.course}</div>
+            <div class="mono" style="font-size:12px; color:#475569;">${match.ref} &bull; ${match.course} [${facultyDisplay}]</div>
           </div>
         </div>
 
@@ -3411,7 +3890,22 @@ tr.candidate-row:hover td {
     document.getElementById('editFirstName').value = s.firstName || s.name.split(' ')[1] || '';
     document.getElementById('editPhone').value = s.phone !== '—' ? s.phone : '';
     document.getElementById('editEmail').value = s.email !== '—' ? s.email : '';
-    document.getElementById('editCourse').value = s.course;
+    
+    // Set course
+    const editCourseSelect = document.getElementById('editCourse');
+    if (editCourseSelect) {
+      editCourseSelect.value = s.course;
+      if (!editCourseSelect.value) {
+        // If not exact match, check options
+        for (let opt of editCourseSelect.options) {
+          if (opt.value.toLowerCase() === s.course.toLowerCase()) {
+            editCourseSelect.value = opt.value;
+            break;
+          }
+        }
+      }
+    }
+
     document.getElementById('editCategory').value = s.category;
     document.getElementById('editState').value = s.stateOfOrigin !== '—' ? s.stateOfOrigin : '';
     document.getElementById('editLga').value = s.lga !== '—' ? s.lga : '';
@@ -3419,6 +3913,14 @@ tr.candidate-row:hover td {
     document.getElementById('editClearanceStatus').value = s.status === 'complete' ? 'complete' : 'pending';
 
     document.getElementById('editCandidateModal').classList.add('open');
+  }
+
+  function handleEditCourseChange(course) {
+    const faculty = getFacultyForCourse(course);
+    const catSelect = document.getElementById('editCategory');
+    if (catSelect) {
+      catSelect.value = faculty;
+    }
   }
 
   function closeEditCandidateModal() {
@@ -3439,7 +3941,7 @@ tr.candidate-row:hover td {
     s.phone = document.getElementById('editPhone').value.trim();
     s.email = document.getElementById('editEmail').value.trim();
     s.course = document.getElementById('editCourse').value.trim();
-    s.category = document.getElementById('editCategory').value;
+    s.category = document.getElementById('editCategory').value || getFacultyForCourse(s.course);
     s.stateOfOrigin = document.getElementById('editState').value.trim();
     s.lga = document.getElementById('editLga').value.trim();
     s.paid = (document.getElementById('editPaymentStatus').value === 'paid');
@@ -3507,14 +4009,14 @@ tr.candidate-row:hover td {
       showToast('No records available to export', 'warning');
       return;
     }
-    const headers = ['Reg No', 'Full Name', 'Phone', 'Email', 'Programme', 'Track', 'Gender', 'State', 'LGA', 'Fee Paid', 'Biometrics Status', 'Date'];
+    const headers = ['Reg No', 'Full Name', 'Phone', 'Email', 'Programme', 'Faculty Track', 'Gender', 'State', 'LGA', 'Fee Paid', 'Biometrics Status', 'Date'];
     const rows = data.map(s => [
       `"${s.ref}"`,
       `"${s.name}"`,
       `"${s.phone}"`,
       `"${s.email}"`,
       `"${s.course}"`,
-      `"${s.category}"`,
+      `"${s.category === 'Science' ? 'Faculty of Science' : (s.category === 'Arts' ? 'Faculty of Arts & Law' : 'Faculty of Commercial')}"`,
       `"${s.gender}"`,
       `"${s.stateOfOrigin}"`,
       `"${s.lga}"`,
@@ -3544,8 +4046,9 @@ tr.candidate-row:hover td {
 
     const name = s.name || `${s.surname || ''} ${s.firstName || ''}`.trim() || 'Candidate';
     const regNo = s.ref || s.matricNo || 'BJSC202627/1001';
-    const course = s.course || 'JUPEB Foundation Track';
+    const course = s.course || 'Medicine & Surgery';
     const track = s.category || 'Science';
+    const facultyDisplay = track === 'Science' ? 'Faculty of Science' : (track === 'Arts' ? 'Faculty of Arts & Law' : 'Faculty of Commercial');
     const now = new Date();
     const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
@@ -3604,7 +4107,7 @@ tr.candidate-row:hover td {
           </div>
           <div style="flex:1;">
             <div style="font-size:17px; font-weight:900; color:#101113;">${name}</div>
-            <div style="font-size:12px; color:#64748B; margin-top:2px;">Target Course: <strong style="color:#101113;">${course}</strong> (${track} Track)</div>
+            <div style="font-size:12px; color:#64748B; margin-top:2px;">Target Course: <strong style="color:#101113;">${course}</strong> (${facultyDisplay})</div>
             <div style="display:flex; gap:10px; margin-top:8px;">
               <div style="background:#fff; border:1px solid #E2E8F0; padding:4px 10px; border-radius:6px; font-size:11px;">
                 <span style="color:#64748B;">Reg Number:</span> <strong style="color:#E31E24; font-family:monospace;">${regNo}</strong>
@@ -3732,7 +4235,7 @@ tr.candidate-row:hover td {
     const qrContainer = document.getElementById('printCertQrCode');
     qrContainer.innerHTML = '';
     new QRCode(qrContainer, {
-      text: `${regNo} • ${name} • BIA JUPEB CLEARED`,
+      text: `${regNo} • ${name} • ${course} • ${facultyDisplay} • BIA JUPEB CLEARED`,
       width: 54,
       height: 54,
       colorDark: '#101113',
@@ -3803,7 +4306,7 @@ tr.candidate-row:hover td {
         <div style="background:var(--bg-app); border:1.5px solid var(--emerald-border); border-radius:var(--radius-md); padding:12px; display:flex; align-items:center; justify-content:space-between;">
           <div>
             <div style="font-weight:700; color:var(--ink); font-size:13.5px;">${match.name}</div>
-            <div class="mono" style="font-size:12px; color:var(--muted);">${match.ref} &bull; ${match.course}</div>
+            <div class="mono" style="font-size:12px; color:var(--muted);">${match.ref} &bull; ${match.course} (${match.category})</div>
           </div>
           <button class="btn btn-primary btn-sm" onclick="closeScanModal(); openReviewDesk('${match.ref}')">
             Review
@@ -3831,14 +4334,10 @@ tr.candidate-row:hover td {
   }
 
   function handleCourseChange(course) {
-    const cLower = course.toLowerCase();
+    const faculty = getFacultyForCourse(course);
     const catSelect = document.getElementById('wiCategory');
-    if (cLower.includes('medicine') || cLower.includes('pharmacy') || cLower.includes('science') || cLower.includes('computer') || cLower.includes('nursing') || cLower.includes('microbiology') || cLower.includes('biochem')) {
-      catSelect.value = 'Science';
-    } else if (cLower.includes('accounting') || cLower.includes('business') || cLower.includes('economics') || cLower.includes('banking') || cLower.includes('finance')) {
-      catSelect.value = 'Commercial';
-    } else {
-      catSelect.value = 'Arts';
+    if (catSelect) {
+      catSelect.value = faculty;
     }
   }
 
@@ -3849,12 +4348,13 @@ tr.candidate-row:hover td {
     const phone = document.getElementById('wiPhone').value.trim();
     const email = document.getElementById('wiEmail').value.trim();
     const course = document.getElementById('wiCourse').value;
-    const category = document.getElementById('wiCategory').value;
+    const category = document.getElementById('wiCategory').value || getFacultyForCourse(course);
     const gender = document.getElementById('wiGender').value;
     const isPaid = (document.getElementById('wiPaid').value === 'paid');
 
+    const prefix = category === 'Science' ? 'BJSC' : (category === 'Arts' ? 'BJAR' : 'BJCM');
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-    const newRef = `BJSC202627/${randomSuffix}`;
+    const newRef = `${prefix}202627/${randomSuffix}`;
 
     const newCandidate = {
       ref_number: newRef,
@@ -3894,7 +4394,7 @@ tr.candidate-row:hover td {
     updateMetrics();
     renderTable();
     closeWalkInModal();
-    showToast(`Enrolled candidate ${surname} ${firstName} (${newRef})`, 'success');
+    showToast(`Enrolled candidate ${surname} ${firstName} (${newRef}) in ${course}`, 'success');
 
     // Automatically trigger welcome email
     sendWelcomeEmailFromAdmin(newRef);
