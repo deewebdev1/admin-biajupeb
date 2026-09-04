@@ -1352,7 +1352,7 @@ tr.candidate-row:hover td {
 
         <button class="btn btn-secondary btn-sm" onclick="openWalkInModal()">
           <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          <span>Register New Candidate</span>
+          <span> Register New Candidate</span>
         </button>
 
         <button class="btn btn-primary btn-sm" onclick="openScanModal()">
@@ -2631,7 +2631,7 @@ tr.candidate-row:hover td {
             <div style="font-size:12px; font-weight:700;">School of Foundation Studies (JUPEB)</div>
             <div style="font-size:13px; font-weight:800; margin-top:4px;">APPLICATION FORM</div>
           </div>
-          <img src="${LOGO_SRC}" alt="BIA logo" style="height:64px; width:64px; object-fit:contain; flex-shrink:0;">
+          <img src="${LOGO_SRC}" alt="BIA logo" style="height:84px; width:84px; object-fit:contain; flex-shrink:0;">
         </div>
 
         <table style="width:100%; border-collapse:collapse; margin-bottom:14px;">
@@ -3324,7 +3324,7 @@ tr.candidate-row:hover td {
       reg_fee_paid: isPaid
     };
     const newCandidate = isEditing ? candidatePayload : {
-      ref_num: newRef,
+      ref_number: newRef,
       ...candidatePayload,
       school_fee_paid: false,
       installments_paid: [false, false, false],
@@ -3334,7 +3334,7 @@ tr.candidate-row:hover td {
     if (supabaseClient) {
       try {
         const { error } = isEditing
-          ? await supabaseClient.from('applications').update(candidatePayload).eq('ref_num', newRef)
+          ? await supabaseClient.from('applications').update(candidatePayload).eq('ref_number', newRef)
           : await supabaseClient.from('applications').insert(newCandidate);
         if (error) {
           showToast('Could not save to database: ' + error.message, 'warning');
@@ -3346,7 +3346,7 @@ tr.candidate-row:hover td {
       showToast('Not connected to database — saved locally only, will not sync', 'warning');
     }
 
-    const mergedRecord = normalizeStudent({ ...candidatePayload, ref_num: newRef, ref: newRef, name: `${surname} ${firstName}`, paid: isPaid, created_at: new Date().toISOString() });
+    const mergedRecord = normalizeStudent({ ...candidatePayload, ref_number: newRef, ref: newRef, name: `${surname} ${firstName}`, paid: isPaid, created_at: new Date().toISOString() });
 
     if (isEditing) {
       const idx = allStudents.findIndex(s => s.ref === newRef);
@@ -3362,7 +3362,7 @@ tr.candidate-row:hover td {
     try {
       const existing = JSON.parse(localStorage.getItem('bia_applications') || '[]');
       if (isEditing) {
-        const idx = existing.findIndex(c => c.ref_num === newRef);
+        const idx = existing.findIndex(c => c.ref_number === newRef);
         if (idx !== -1) existing[idx] = { ...existing[idx], ...candidatePayload };
       } else {
         existing.unshift(newCandidate);
