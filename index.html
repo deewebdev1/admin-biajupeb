@@ -1894,13 +1894,8 @@ tr.candidate-row:hover td {
         </div>
 
         <div class="form-group">
-          <label>School Fee Status</label>
-          <select id="wiSchoolFeeStatus" class="form-input">
-            <option value="unpaid">Unpaid</option>
-            <option value="installment1">1st Installment Paid (₦200,000)</option>
-            <option value="installment2">2nd Installment Paid (₦400,000 total)</option>
-            <option value="full">Fully Paid</option>
-          </select>
+          <label>School Fee — Amount Paid (Science: ₦686,700 / Arts &amp; Commercial: ₦670,700)</label>
+          <input type="number" id="wiSchoolFeeAmount" class="form-input" min="0" max="686700" step="1000" placeholder="e.g. 300000">
         </div>
 
         <div class="form-group" style="display:none;">
@@ -2441,7 +2436,7 @@ tr.candidate-row:hover td {
       <div style="display:flex; gap:8px; margin-top:6px;">
         <button class="btn btn-secondary btn-sm" onclick="cycleSchoolFeeStatus('${student.ref}')" style="flex:1;">
           <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-          School Fee: ${getSchoolFeeInfo(student.category, (student.raw && student.raw.school_fee_status) || 'unpaid').label}
+          School Fee: ${getSchoolFeeInfo(student.category, (student.raw && (student.raw.school_fee_amount_paid ?? student.raw.school_fee_status)) ?? 'unpaid').label}
         </button>
         <button class="btn btn-secondary btn-sm" onclick="downloadPaymentSlip('${student.ref}', 'school')" style="flex:0 0 auto; padding:2px 10px;" title="Download School Fee Slip">
           <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -3227,14 +3222,23 @@ tr.candidate-row:hover td {
     return { label, paid, total, balance };
   }
 
-  function getSchoolFeeInfo(track, status) {
+  // Accepts either a raw amount paid (number) or a legacy status string
+  // ('unpaid'/'installment1'/'installment2'/'full') for records saved
+  // before this became amount-based.
+  function getSchoolFeeInfo(track, amountOrStatus) {
     const isScience = String(track || '').toLowerCase().includes('science');
     const total = isScience ? 686700 : 670700;
-    const thirdInstallment = total - 400000;
-    if (status === 'full') return { label: 'Fully Paid', paid: total, total, balance: 0 };
-    if (status === 'installment2') return { label: '2nd Installment Paid', paid: 400000, total, balance: total - 400000 };
-    if (status === 'installment1') return { label: '1st Installment Paid', paid: 200000, total, balance: total - 200000 };
-    return { label: 'Unpaid', paid: 0, total, balance: total };
+    let paid = 0;
+    if (amountOrStatus === 'full') paid = total;
+    else if (amountOrStatus === 'installment2') paid = 400000;
+    else if (amountOrStatus === 'installment1') paid = 200000;
+    else if (amountOrStatus === 'unpaid' || amountOrStatus == null) paid = 0;
+    else paid = Number(amountOrStatus) || 0;
+
+    paid = Math.max(0, Math.min(paid, total));
+    const balance = total - paid;
+    const label = paid <= 0 ? 'Unpaid' : (balance <= 0 ? 'Fully Paid' : `Part Payment (${formatNaira(paid)})`);
+    return { label, paid, total, balance };
   }
 
   function formatNaira(amount) {
@@ -3277,15 +3281,24 @@ tr.candidate-row:hover td {
   async function cycleSchoolFeeStatus(ref) {
     const s = allStudents.find(item => item.ref === ref);
     if (!s) return;
-    const order = ['unpaid', 'installment1', 'installment2', 'full'];
-    const current = (s.raw && s.raw.school_fee_status) || 'unpaid';
-    const next = order[(order.indexOf(current) + 1) % order.length];
+    const total = getSchoolFeeInfo(s.category, 'unpaid').total;
+    const currentAmount = (s.raw && (s.raw.school_fee_amount_paid ?? getSchoolFeeInfo(s.category, s.raw.school_fee_status || 'unpaid').paid)) || 0;
+    const input = prompt(`Enter the amount paid so far toward the ${formatNaira(total)} School Fee for ${s.name || s.ref}:`, currentAmount);
+    if (input === null) return; // cancelled
+
+    let amount = Number(String(input).replace(/[^0-9.]/g, ''));
+    if (isNaN(amount) || amount < 0) {
+      showToast('Please enter a valid amount', 'warning');
+      return;
+    }
+    if (amount > total) amount = total;
+
     if (!s.raw) s.raw = {};
-    s.raw.school_fee_status = next;
+    s.raw.school_fee_amount_paid = amount;
 
     if (supabaseClient && s.raw.id) {
       try {
-        const { error } = await supabaseClient.from('applications').update({ school_fee_status: next }).eq('id', s.raw.id);
+        const { error } = await supabaseClient.from('applications').update({ school_fee_amount_paid: amount }).eq('id', s.raw.id);
         if (error) showToast('Saved locally only — database update failed: ' + error.message, 'warning');
       } catch (err) { showToast('Saved locally only — database update failed: ' + err.message, 'warning'); }
     }
@@ -3294,14 +3307,14 @@ tr.candidate-row:hover td {
     updateMetrics();
     renderTable();
     if (activeStudentDrawerRef === ref) openStudentDrawer(ref);
-    showToast(`School Fee: ${getSchoolFeeInfo(s.category, next).label}`, 'success');
+    showToast(`School Fee: ${getSchoolFeeInfo(s.category, amount).label}`, 'success');
   }
 
   function buildPaymentSlipHtml(s, feeType) {
     const isApplication = feeType === 'application';
     const info = isApplication
       ? getApplicationFeeInfo((s.raw && (s.raw.application_fee_amount_paid ?? s.raw.application_fee_status)) ?? 'unpaid')
-      : getSchoolFeeInfo(s.category, (s.raw && s.raw.school_fee_status) || 'unpaid');
+      : getSchoolFeeInfo(s.category, (s.raw && (s.raw.school_fee_amount_paid ?? s.raw.school_fee_status)) ?? 'unpaid');
     const title = isApplication ? 'Application & Registration Fee' : 'Academic Tuition & Exam Fees';
     const name = s.name || `${s.surname || ''} ${s.firstName || ''}`.trim() || 'Candidate';
     const isFullyPaid = info.balance <= 0;
@@ -3586,47 +3599,47 @@ tr.candidate-row:hover td {
     document.querySelector('#walkInForm button[type="submit"]').textContent = 'Save Changes';
 
     document.getElementById('wiTitle').value = r.title || 'Mr.';
-    document.getElementById('wiMaidenName').value = r.maiden_name || '';
+    document.getElementById('wiMaidenName').value = r.maiden_name || r.maidenName || '';
     document.getElementById('wiSurname').value = r.surname || '';
-    document.getElementById('wiFirstName').value = r.first_name || '';
-    document.getElementById('wiOtherNames').value = r.other_names || '';
-    document.getElementById('wiDob').value = r.dob || '';
+    document.getElementById('wiFirstName').value = r.first_name || r.firstName || '';
+    document.getElementById('wiOtherNames').value = r.other_names || r.otherNames || r.middleName || '';
+    document.getElementById('wiDob').value = r.dob || r.dateOfBirth || r.date_of_birth || '';
     document.getElementById('wiGender').value = r.gender || 'Male';
-    document.getElementById('wiMaritalStatus').value = r.marital_status || 'Single';
+    document.getElementById('wiMaritalStatus').value = r.marital_status || r.maritalStatus || 'Single';
     document.getElementById('wiReligion').value = r.religion || 'Christianity';
     document.getElementById('wiDisability').value = r.disability || '';
     document.getElementById('wiPhone').value = r.phone || '';
     document.getElementById('wiEmail').value = r.email || '';
-    document.getElementById('wiStateOfOrigin').value = r.state_of_origin || '';
-    document.getElementById('wiLga').value = r.lga || '';
-    document.getElementById('wiAddress').value = r.address || '';
+    document.getElementById('wiStateOfOrigin').value = r.state_of_origin || r.stateOfOrigin || '';
+    document.getElementById('wiLga').value = r.lga || r.origin_lga || r.originLga || '';
+    document.getElementById('wiAddress').value = r.address || r.contact_address || r.contactAddress || '';
     document.getElementById('wiCity').value = r.city || '';
-    document.getElementById('wiPostalAddress').value = r.postal_address || '';
+    document.getElementById('wiPostalAddress').value = r.postal_address || r.postalAddress || '';
     document.getElementById('wiNin').value = r.nin || '';
-    document.getElementById('wiCourse').value = r.course || '';
+    document.getElementById('wiCourse').value = r.course || r.programme || '';
     document.getElementById('wiCategory').value = r.category || 'commercial';
-    document.getElementById('wiPreviousSchool').value = r.previous_school || '';
-    document.getElementById('wiNokName').value = r.nok_name || '';
-    document.getElementById('wiNokPhone').value = r.nok_phone || '';
-    document.getElementById('wiNokAddress').value = r.nok_address || '';
-    document.getElementById('wiSponsorName').value = r.sponsor_name || '';
-    document.getElementById('wiSponsorRelationship').value = r.sponsor_relationship || '';
-    document.getElementById('wiSponsorPhone').value = r.sponsor_phone || '';
-    document.getElementById('wiSponsorEmail').value = r.sponsor_email || '';
-    document.getElementById('wiSponsorAddress').value = r.sponsor_address || '';
-    document.getElementById('wiRefereeName').value = r.referee_name || '';
-    document.getElementById('wiRefereePhone').value = r.referee_phone || '';
-    document.getElementById('wiRefereeEmail').value = r.referee_email || '';
-    document.getElementById('wiRefereeAddress').value = r.referee_address || '';
+    document.getElementById('wiPreviousSchool').value = r.previous_school || r.previousSchool || '';
+    document.getElementById('wiNokName').value = r.nok_name || r.nokName || '';
+    document.getElementById('wiNokPhone').value = r.nok_phone || r.nokPhone || '';
+    document.getElementById('wiNokAddress').value = r.nok_address || r.nokAddress || '';
+    document.getElementById('wiSponsorName').value = r.sponsor_name || r.sponsorName || '';
+    document.getElementById('wiSponsorRelationship').value = r.sponsor_relationship || r.sponsorRelationship || '';
+    document.getElementById('wiSponsorPhone').value = r.sponsor_phone || r.sponsorPhone || '';
+    document.getElementById('wiSponsorEmail').value = r.sponsor_email || r.sponsorEmail || '';
+    document.getElementById('wiSponsorAddress').value = r.sponsor_address || r.sponsorAddress || '';
+    document.getElementById('wiRefereeName').value = r.referee_name || r.refereeName || '';
+    document.getElementById('wiRefereePhone').value = r.referee_phone || r.refereePhone || '';
+    document.getElementById('wiRefereeEmail').value = r.referee_email || r.refereeEmail || '';
+    document.getElementById('wiRefereeAddress').value = r.referee_address || r.refereeAddress || '';
     document.getElementById('wiPaid').value = r.reg_fee_paid ? 'paid' : 'unpaid';
     document.getElementById('wiAppFeeAmount').value = (r.application_fee_amount_paid ?? getApplicationFeeInfo(r.application_fee_status || (r.reg_fee_paid ? 'full' : 'unpaid')).paid);
-    document.getElementById('wiSchoolFeeStatus').value = r.school_fee_status || 'unpaid';
+    document.getElementById('wiSchoolFeeAmount').value = (r.school_fee_amount_paid ?? getSchoolFeeInfo(r.category, r.school_fee_status || 'unpaid').paid);
 
-    const olevel = r.olevel_grades;
-    const examType = (olevel && !Array.isArray(olevel)) ? olevel.exam_type : '';
-    const examNumber = (olevel && !Array.isArray(olevel)) ? olevel.exam_number : '';
-    const examPeriod = (olevel && !Array.isArray(olevel)) ? olevel.exam_period : '';
-    const examYear = (olevel && !Array.isArray(olevel)) ? olevel.exam_year : '';
+    const olevel = r.olevel_grades || r.olevelGrades;
+    const examType = (olevel && !Array.isArray(olevel)) ? (olevel.exam_type || olevel.examType) : '';
+    const examNumber = (olevel && !Array.isArray(olevel)) ? (olevel.exam_number || olevel.examNumber) : '';
+    const examPeriod = (olevel && !Array.isArray(olevel)) ? (olevel.exam_period || olevel.examPeriod) : '';
+    const examYear = (olevel && !Array.isArray(olevel)) ? (olevel.exam_year || olevel.examYear) : '';
     const subjects = olevel ? (Array.isArray(olevel) ? olevel : (olevel.subjects || [])) : [];
     document.getElementById('wiExamType').value = examType || 'WAEC';
     document.getElementById('wiExamNumber').value = examNumber || '';
@@ -3791,7 +3804,9 @@ tr.candidate-row:hover td {
     const refereeEmail = document.getElementById('wiRefereeEmail').value.trim();
     const refereeAddress = document.getElementById('wiRefereeAddress').value.trim();
     const appFeeAmount = Math.max(0, Math.min(45000, Number(document.getElementById('wiAppFeeAmount').value) || 0));
-    const schoolFeeStatus = document.getElementById('wiSchoolFeeStatus').value;
+    const schoolFeeTrack = document.getElementById('wiCategory').value;
+    const schoolFeeTotal = getSchoolFeeInfo(schoolFeeTrack, 'unpaid').total;
+    const schoolFeeAmount = Math.max(0, Math.min(schoolFeeTotal, Number(document.getElementById('wiSchoolFeeAmount').value) || 0));
     const isPaid = (appFeeAmount >= 45000);
     const examType = document.getElementById('wiExamType').value;
     const examNumber = document.getElementById('wiExamNumber').value.trim();
@@ -3864,7 +3879,7 @@ tr.candidate-row:hover td {
       referee_address: refereeAddress,
       reg_fee_paid: isPaid,
       application_fee_amount_paid: appFeeAmount,
-      school_fee_status: schoolFeeStatus
+      school_fee_amount_paid: schoolFeeAmount
     };
     const newCandidate = isEditing ? candidatePayload : {
       ref_number: newRef,
