@@ -1361,7 +1361,7 @@ tr.candidate-row:hover td {
 
         <button class="btn btn-secondary btn-sm" onclick="openWalkInModal()">
           <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          <span>+ Register New Candidate</span>
+          <span>Register New Candidate</span>
         </button>
 
         <button class="btn btn-primary btn-sm" onclick="openScanModal()">
@@ -1761,7 +1761,7 @@ tr.candidate-row:hover td {
             <label>Target Programme *</label>
             <input type="text" id="wiCourse" class="form-input" list="wiCourseList" required autocomplete="off" placeholder="Start typing to search…" oninput="handleCourseChange(this.value)">
             <datalist id="wiCourseList">
-              <option value="Accounting"><option value="Actuarial Science"><option value="Agricultural Economics"><option value="Agricultural Extension"><option value="Anatomy"><option value="Animal Science"><option value="Arabic"><option value="Architecture"><option value="Banking &amp; Finance"><option value="Biochemistry"><option value="Biology"><option value="Botany"><option value="Building"><option value="Business Administration"><option value="Chemical Engineering"><option value="Chemistry"><option value="Christian Religious Studies"><option value="Civil Engineering"><option value="Computer Engineering"><option value="Computer Science"><option value="Crop Science"><option value="Criminology"><option value="Demography and Social Statistics"><option value="Dentistry"><option value="Economics"><option value="Educational Administration"><option value="Electrical/Electronic Engineering"><option value="English Language"><option value="Environmental Health Science"><option value="Environmental Management"><option value="Estate Management"><option value="Fine and Applied Arts"><option value="Fisheries and Aquaculture"><option value="Food Science and Technology"><option value="Forestry and Wildlife"><option value="French"><option value="Geography"><option value="Geology"><option value="German"><option value="Guidance and Counselling"><option value="Hausa"><option value="History and International Studies"><option value="Home Science and Management"><option value="Hospitality and Tourism Management"><option value="Human Resource Management"><option value="Human Physiology"><option value="Igbo"><option value="Industrial Chemistry"><option value="Industrial Relations and Personnel Management"><option value="Insurance"><option value="International Relations"><option value="Islamic Studies"><option value="Law"><option value="Library and Information Science"><option value="Linguistics"><option value="Local Government Studies"><option value="Marine Biology"><option value="Marketing"><option value="Mass Communication"><option value="Mathematics"><option value="Mechanical Engineering"><option value="Medical Laboratory Science"><option value="Medicine &amp; Surgery"><option value="Metallurgical and Materials Engineering"><option value="Microbiology"><option value="Music"><option value="Nursing Science"><option value="Nutrition and Dietetics"><option value="Optometry"><option value="Petroleum Engineering"><option value="Petroleum and Gas Engineering"><option value="Pharmacology"><option value="Pharmacy"><option value="Philosophy"><option value="Physical and Health Education"><option value="Physics"><option value="Physiotherapy"><option value="Political Science"><option value="Psychology"><option value="Public Administration"><option value="Public Health"><option value="Quantity Surveying"><option value="Radiography"><option value="Religious and Cultural Studies"><option value="Social Work"><option value="Sociology"><option value="Soil Science"><option value="Statistics"><option value="Surveying and Geoinformatics"><option value="Taxation"><option value="Theatre Arts"><option value="Transport Management"><option value="Urban and Regional Planning"><option value="Veterinary Medicine"><option value="Wildlife and Ecotourism Management"><option value="Yoruba"><option value="Zoology">
+              <option value="Accounting"><option value="Actuarial Science"><option value="Agricultural Economics"><option value="Agricultural Engineering"><option value="Agricultural Extension"><option value="Anatomy"><option value="Animal Science"><option value="Arabic"><option value="Architecture"><option value="Artificial Intelligence"><option value="Banking &amp; Finance"><option value="Biochemistry"><option value="Biology"><option value="Biomedical Engineering"><option value="Botany"><option value="Building"><option value="Business Administration"><option value="Chemical Engineering"><option value="Chemistry"><option value="Christian Religious Studies"><option value="Cinematography"><option value="Civil Engineering"><option value="Computer Engineering"><option value="Computer Science"><option value="Crop Science"><option value="Criminology"><option value="Cyber Security"><option value="Data Science"><option value="Demography and Social Statistics"><option value="Dentistry"><option value="Economics"><option value="Educational Administration"><option value="Electrical/Electronic Engineering"><option value="English Language"><option value="Environmental Health Science"><option value="Environmental Management"><option value="Estate Management"><option value="Fine and Applied Arts"><option value="Fisheries and Aquaculture"><option value="Food Science and Technology"><option value="Forestry and Wildlife"><option value="French"><option value="Geography"><option value="Geology"><option value="German"><option value="Guidance and Counselling"><option value="Hausa"><option value="History and International Studies"><option value="Home Science and Management"><option value="Hospitality and Tourism Management"><option value="Human Resource Management"><option value="Human Physiology"><option value="Igbo"><option value="Industrial Chemistry"><option value="Industrial Relations and Personnel Management"><option value="Information Technology"><option value="Insurance"><option value="International Relations"><option value="Islamic Studies"><option value="Law"><option value="Library and Information Science"><option value="Linguistics"><option value="Local Government Studies"><option value="Marine Biology"><option value="Marketing"><option value="Mass Communication"><option value="Mathematics"><option value="Mechanical Engineering"><option value="Mechatronics Engineering"><option value="Medical Laboratory Science"><option value="Medicine &amp; Surgery"><option value="Metallurgical and Materials Engineering"><option value="Microbiology"><option value="Music"><option value="Nursing Science"><option value="Nutrition and Dietetics"><option value="Optometry"><option value="Petroleum Engineering"><option value="Petroleum and Gas Engineering"><option value="Pharmacology"><option value="Pharmacy"><option value="Philosophy"><option value="Physical and Health Education"><option value="Physics"><option value="Physiotherapy"><option value="Political Science"><option value="Psychology"><option value="Public Administration"><option value="Public Health"><option value="Quantity Surveying"><option value="Radiography"><option value="Religious and Cultural Studies"><option value="Robotics Engineering"><option value="Social Work"><option value="Sociology"><option value="Software Engineering"><option value="Soil Science"><option value="Statistics"><option value="Surveying and Geoinformatics"><option value="Systems Engineering"><option value="Taxation"><option value="Theatre Arts"><option value="Transport Management"><option value="Urban and Regional Planning"><option value="Veterinary Medicine"><option value="Wildlife and Ecotourism Management"><option value="Yoruba"><option value="Zoology">
             </datalist>
           </div>
           <div class="form-group">
@@ -1801,13 +1801,20 @@ tr.candidate-row:hover td {
           <div class="form-group">
             <label>Exam Period</label>
             <select id="wiExamPeriod" class="form-input">
+              <option value="January/February">January/February</option>
               <option value="May/June">May/June</option>
+              <option value="June/July">June/July</option>
+              <option value="July/August">July/August</option>
+              <option value="August/September">August/September</option>
+              <option value="September/October">September/October</option>
+              <option value="October/November">October/November</option>
               <option value="Nov/Dec">Nov/Dec</option>
+              <option value="December/January">December/January</option>
             </select>
           </div>
           <div class="form-group">
             <label>Exam Year</label>
-            <input type="number" id="wiExamYear" class="form-input" placeholder="e.g. 2026" min="2015" max="2030">
+            <input type="number" id="wiExamYear" class="form-input" placeholder="e.g. 2026" min="1815" max="2030">
           </div>
         </div>
         <div class="form-group">
@@ -3605,9 +3612,11 @@ tr.candidate-row:hover td {
 
   // Walk-in Candidate Modal
   let editingCandidateRef = null;
+  let editingCandidateId = null;
 
   function openWalkInModal() {
     editingCandidateRef = null;
+    editingCandidateId = null;
     document.querySelector('#walkInModal h3').textContent = 'Register New Candidate';
     document.querySelector('#walkInForm button[type="submit"]').textContent = 'Register Candidate';
     document.getElementById('walkInModal').classList.add('open');
@@ -3629,6 +3638,7 @@ tr.candidate-row:hover td {
     }
     const r = s.raw;
     editingCandidateRef = ref;
+    editingCandidateId = r.id || null;
 
     document.getElementById('walkInModal').classList.add('open');
     document.querySelector('#walkInModal h3').textContent = 'Edit Candidate — ' + ref;
@@ -3765,7 +3775,7 @@ tr.candidate-row:hover td {
     'Agricultural Science','Further Mathematics','Geography','Economics','Government',
     'Literature in English','Christian Religious Studies','Islamic Religious Studies',
     'History','French','Yoruba','Igbo','Hausa','Commerce','Financial Accounting',
-    'Business Studies','Office Practice','Marketing','Insurance','Home Economics',
+    'Data Processing','Business Studies','Office Practice','Marketing','Insurance','Home Economics',
     'Food and Nutrition','Fine Arts','Music','Physical and Health Education',
     'Computer Studies','Technical Drawing','Basic Electricity','Basic Electronics',
     'Auto Mechanics','Building Construction','Woodwork','Metalwork','Catering Craft Practice',
@@ -3931,11 +3941,16 @@ tr.candidate-row:hover td {
 
     if (supabaseClient) {
       try {
-        const { error } = isEditing
-          ? await supabaseClient.from('applications').update(candidatePayload).eq('ref_number', newRef)
-          : await supabaseClient.from('applications').insert(newCandidate);
+        let query = isEditing
+          ? (editingCandidateId
+              ? supabaseClient.from('applications').update(candidatePayload).eq('id', editingCandidateId)
+              : supabaseClient.from('applications').update(candidatePayload).eq('ref_number', newRef))
+          : supabaseClient.from('applications').insert(newCandidate);
+        const { data, error } = await query.select();
         if (error) {
           showToast('Could not save to database: ' + error.message, 'warning');
+        } else if (isEditing && (!data || data.length === 0)) {
+          showToast('Save failed silently — no matching record found in the database. Please refresh the page and try editing again.', 'warning');
         }
       } catch (err) {
         showToast('Could not save to database: ' + err.message, 'warning');
@@ -3976,6 +3991,7 @@ tr.candidate-row:hover td {
       : `Registered ${surname} ${firstName} (Reg No: ${newRef})`, 'success');
 
     editingCandidateRef = null;
+    editingCandidateId = null;
     setTimeout(() => {
       openStudentDrawer(newRef);
     }, 250);
