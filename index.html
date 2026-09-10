@@ -2099,6 +2099,61 @@ tr.candidate-row:hover td {
     return (r && (r.ref_number || r.ref)) || (entry && entry.ref) || null;
   }
 
+  // Some locally-cached entries are UI-shaped (camelCase, from allStudents)
+  // rather than DB-shaped (snake_case, matching the applications table).
+  // This builds a clean object with ONLY real database column names,
+  // mirroring the exact fallback logic openEditCandidateModal already uses.
+  function mapEntryToDbColumns(entry) {
+    const r = extractRawRecord(entry) || {};
+    const topLevelRef = extractRefNumber(entry);
+    return {
+      ref_number: r.ref_number || topLevelRef,
+      title: r.title || 'Mr.',
+      maiden_name: r.maiden_name || r.maidenName || '',
+      surname: r.surname || (entry && entry.surname) || '',
+      first_name: r.first_name || r.firstName || (entry && entry.firstName) || '',
+      other_names: r.other_names || r.otherNames || r.middleName || '',
+      dob: r.dob || r.dateOfBirth || r.date_of_birth || null,
+      gender: r.gender || 'Male',
+      marital_status: r.marital_status || r.maritalStatus || 'Single',
+      religion: r.religion || 'Christianity',
+      disability: r.disability || '',
+      nationality: r.nationality || 'Nigerian',
+      state_of_origin: r.state_of_origin || r.stateOfOrigin || '',
+      lga: r.lga || r.origin_lga || r.originLga || '',
+      phone: r.phone || (entry && entry.phone) || '',
+      email: r.email || (entry && entry.email) || '',
+      address: r.address || r.contact_address || r.contactAddress || '',
+      city: r.city || '',
+      postal_address: r.postal_address || r.postalAddress || '',
+      nin: r.nin || '',
+      course: r.course || r.programme || (entry && entry.course) || '',
+      category: r.category || (entry && entry.category) || 'commercial',
+      photo_url: r.photo_url || r.photoUrl || null,
+      previous_school: r.previous_school || r.previousSchool || '',
+      olevel_grades: r.olevel_grades || r.olevelGrades || null,
+      nok_name: r.nok_name || r.nokName || '',
+      nok_phone: r.nok_phone || r.nokPhone || '',
+      nok_address: r.nok_address || r.nokAddress || '',
+      sponsor_name: r.sponsor_name || r.sponsorName || '',
+      sponsor_relationship: r.sponsor_relationship || r.sponsorRelationship || '',
+      sponsor_phone: r.sponsor_phone || r.sponsorPhone || '',
+      sponsor_email: r.sponsor_email || r.sponsorEmail || '',
+      sponsor_address: r.sponsor_address || r.sponsorAddress || '',
+      referee_name: r.referee_name || r.refereeName || '',
+      referee_phone: r.referee_phone || r.refereePhone || '',
+      referee_email: r.referee_email || r.refereeEmail || '',
+      referee_address: r.referee_address || r.refereeAddress || '',
+      reg_fee_paid: !!(r.reg_fee_paid ?? (entry && entry.paid)),
+      application_fee_amount_paid: r.application_fee_amount_paid ?? 0,
+      school_fee_amount_paid: r.school_fee_amount_paid ?? 0,
+      is_na_student: !!r.is_na_student,
+      school_fee_paid: !!r.school_fee_paid,
+      installments_paid: r.installments_paid || [false, false, false],
+      status: r.status || (entry && entry.status) || 'pending'
+    };
+  }
+
   // Recovers candidates that only ever made it into this device's local
   // browser storage (e.g. because the connection to Supabase failed at
   // registration time) and pushes them into the shared database so every
@@ -2148,11 +2203,7 @@ tr.candidate-row:hover td {
       return;
     }
 
-    const toInsert = missing.map(entry => {
-      const raw = { ...extractRawRecord(entry) };
-      delete raw.id; // let Supabase assign its own id for these fresh inserts
-      return raw;
-    });
+    const toInsert = missing.map(entry => mapEntryToDbColumns(entry));
 
     try {
       const { data, error } = await supabaseClient.from('applications').insert(toInsert).select();
