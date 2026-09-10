@@ -1359,9 +1359,14 @@ tr.candidate-row:hover td {
           <span>Export CSV</span>
         </button>
 
+        <button class="btn btn-secondary btn-sm" onclick="syncLocalRecordsToDatabase()" title="Push any candidates trapped on this device into the shared database" style="border-color:#F59E0B; color:#B45309;">
+          <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          <span>Recover Local Records</span>
+        </button>
+
         <button class="btn btn-secondary btn-sm" onclick="openWalkInModal()">
           <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          <span>Register New Candidate</span>
+          <span>+ Register New Candidate</span>
         </button>
 
         <button class="btn btn-primary btn-sm" onclick="openScanModal()">
@@ -2081,6 +2086,84 @@ tr.candidate-row:hover td {
     renderTable();
     if (showToastNotice) {
       showToast('Candidate records updated', 'success');
+    }
+  }
+
+  // Pulls the raw DB-shaped record out of a localStorage entry, whichever
+  // of the two shapes it happens to be stored as (see comment above).
+  function extractRawRecord(entry) {
+    return (entry && entry.raw) ? entry.raw : entry;
+  }
+  function extractRefNumber(entry) {
+    const r = extractRawRecord(entry);
+    return (r && (r.ref_number || r.ref)) || (entry && entry.ref) || null;
+  }
+
+  // Recovers candidates that only ever made it into this device's local
+  // browser storage (e.g. because the connection to Supabase failed at
+  // registration time) and pushes them into the shared database so every
+  // admin can see them. Safe to run repeatedly — it only inserts records
+  // whose ref_number isn't already in the shared database.
+  async function syncLocalRecordsToDatabase() {
+    if (!supabaseClient) {
+      showToast('Not connected to the shared database right now — check your internet connection and try again.', 'warning');
+      return;
+    }
+
+    let localApps;
+    try {
+      localApps = JSON.parse(localStorage.getItem('bia_applications') || '[]');
+    } catch (e) {
+      showToast('Could not read local records on this device', 'warning');
+      return;
+    }
+    if (!Array.isArray(localApps) || localApps.length === 0) {
+      showToast('No local records found on this device', 'info');
+      return;
+    }
+
+    showToast(`Checking ${localApps.length} local record(s) on this device against the shared database…`, 'info');
+
+    let existingRefs = new Set();
+    try {
+      const { data, error } = await supabaseClient.from('applications').select('ref_number');
+      if (error) throw error;
+      (data || []).forEach(r => { if (r.ref_number) existingRefs.add(r.ref_number); });
+    } catch (err) {
+      showToast('Could not check the shared database: ' + err.message, 'warning');
+      return;
+    }
+
+    const missing = localApps.filter(entry => {
+      const ref = extractRefNumber(entry);
+      return ref && !existingRefs.has(ref);
+    });
+
+    if (missing.length === 0) {
+      showToast('Good news — every local record on this device is already safely in the shared database.', 'success');
+      return;
+    }
+
+    if (!confirm(`Found ${missing.length} candidate(s) on THIS DEVICE that never reached the shared database. Push them now so every admin can see them?`)) {
+      return;
+    }
+
+    const toInsert = missing.map(entry => {
+      const raw = { ...extractRawRecord(entry) };
+      delete raw.id; // let Supabase assign its own id for these fresh inserts
+      return raw;
+    });
+
+    try {
+      const { data, error } = await supabaseClient.from('applications').insert(toInsert).select();
+      if (error) {
+        showToast('Recovery failed: ' + error.message, 'warning');
+        return;
+      }
+      showToast(`✅ Recovered ${data ? data.length : missing.length} candidate(s) into the shared database.`, 'success');
+      fetchAllStudents(false);
+    } catch (err) {
+      showToast('Recovery failed: ' + err.message, 'warning');
     }
   }
 
