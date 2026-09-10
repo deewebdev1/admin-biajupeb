@@ -1361,7 +1361,7 @@ tr.candidate-row:hover td {
 
         <button class="btn btn-secondary btn-sm" onclick="openWalkInModal()">
           <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          <span>Register New Candidate</span>
+          <span>+ Register New Candidate</span>
         </button>
 
         <button class="btn btn-primary btn-sm" onclick="openScanModal()">
@@ -1814,7 +1814,7 @@ tr.candidate-row:hover td {
           </div>
           <div class="form-group">
             <label>Exam Year</label>
-            <input type="number" id="wiExamYear" class="form-input" placeholder="e.g. 2026" min="1815" max="2030">
+            <input type="number" id="wiExamYear" class="form-input" placeholder="e.g. 2026" min="2015" max="2030">
           </div>
         </div>
         <div class="form-group">
@@ -2053,15 +2053,17 @@ tr.candidate-row:hover td {
       }
     }
 
-    // 2. LocalStorage (portal submissions)
+    // 2. LocalStorage — only fills in records that never made it to Supabase
+    // (e.g. this device lost connection while registering). If Supabase
+    // already has a record for a given ref, that shared copy wins — a
+    // stale local copy on one admin's device must never shadow it.
     try {
       const localApps = JSON.parse(localStorage.getItem('bia_applications') || '[]');
       if (Array.isArray(localApps) && localApps.length > 0) {
         const localNormalized = localApps.map(normalizeStudent);
         localNormalized.forEach(l => {
           const idx = combined.findIndex(c => c.ref === l.ref);
-          if (idx >= 0) combined[idx] = l;
-          else combined.unshift(l);
+          if (idx < 0) combined.unshift(l);
         });
       }
     } catch (e) {}
@@ -3939,6 +3941,7 @@ tr.candidate-row:hover td {
       status: 'pending'
     };
 
+    let dbSaveOk = false;
     if (supabaseClient) {
       try {
         let query = isEditing
@@ -3948,15 +3951,17 @@ tr.candidate-row:hover td {
           : supabaseClient.from('applications').insert(newCandidate);
         const { data, error } = await query.select();
         if (error) {
-          showToast('Could not save to database: ' + error.message, 'warning');
+          showToast('NOT SAVED TO SHARED DATABASE: ' + error.message + ' — other admins will not see this record.', 'warning');
         } else if (isEditing && (!data || data.length === 0)) {
           showToast('Save failed silently — no matching record found in the database. Please refresh the page and try editing again.', 'warning');
+        } else {
+          dbSaveOk = true;
         }
       } catch (err) {
-        showToast('Could not save to database: ' + err.message, 'warning');
+        showToast('NOT SAVED TO SHARED DATABASE: ' + err.message + ' — other admins will not see this record.', 'warning');
       }
     } else {
-      showToast('Not connected to database — saved locally only, will not sync', 'warning');
+      showToast('NOT CONNECTED TO SHARED DATABASE — this record is saved on this device only and other admins will not see it.', 'warning');
     }
 
     const mergedRecord = normalizeStudent({ ...candidatePayload, ref_number: newRef, ref: newRef, name: `${surname} ${firstName}`, paid: isPaid, created_at: new Date().toISOString() });
@@ -3986,9 +3991,13 @@ tr.candidate-row:hover td {
     updateMetrics();
     renderTable();
     closeWalkInModal();
-    showToast(isEditing
-      ? `Updated ${surname} ${firstName} (Reg No: ${newRef})`
-      : `Registered ${surname} ${firstName} (Reg No: ${newRef})`, 'success');
+    if (dbSaveOk) {
+      showToast(isEditing
+        ? `Updated ${surname} ${firstName} (Reg No: ${newRef}) — synced to shared database`
+        : `Registered ${surname} ${firstName} (Reg No: ${newRef}) — synced to shared database`, 'success');
+    } else {
+      showToast(`⚠ ${surname} ${firstName} saved on THIS DEVICE ONLY — not visible to other admins yet. Check the warning above.`, 'warning');
+    }
 
     editingCandidateRef = null;
     editingCandidateId = null;
