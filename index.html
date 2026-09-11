@@ -1909,7 +1909,7 @@ tr.candidate-row:hover td {
 
         <div class="form-group" style="border-top:1px solid var(--line); padding-top:14px; margin-top:6px;">
           <label>Application Fee — Amount Paid (of ₦45,000)</label>
-          <input type="number" id="wiAppFeeAmount" class="form-input" min="0" max="45000" step="500" placeholder="e.g. 40000">
+          <input type="number" id="wiAppFeeAmount" class="form-input" min="0" max="45000" step="1" placeholder="e.g. 40000">
         </div>
 
         <div class="form-group" style="border-top:1px solid var(--line); padding-top:14px; margin-top:6px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
@@ -1922,7 +1922,7 @@ tr.candidate-row:hover td {
 
         <div class="form-group">
           <label id="wiSchoolFeeLabel">School Fee — Amount Paid (Science: ₦686,700 / Arts &amp; Commercial: ₦670,700)</label>
-          <input type="number" id="wiSchoolFeeAmount" class="form-input" min="0" max="686700" step="1000" placeholder="e.g. 300000">
+          <input type="number" id="wiSchoolFeeAmount" class="form-input" min="0" max="686700" step="1" placeholder="e.g. 300000">
         </div>
 
         <div class="form-group" style="display:none;">
@@ -3764,6 +3764,7 @@ tr.candidate-row:hover td {
     document.getElementById('wiPhotoPreview').innerHTML = 'No photo';
     document.getElementById('wiNaStudent').checked = false;
     toggleNaStudentLabel();
+    restoreWiDraftIfMatching(null);
   }
 
   function openEditCandidateModal(ref) {
@@ -3846,6 +3847,7 @@ tr.candidate-row:hover td {
     document.getElementById('wiPhotoPreview').innerHTML = wiPhotoDataUrl
       ? `<img src="${wiPhotoDataUrl}" style="width:100%;height:100%;object-fit:cover;">`
       : 'No photo';
+    restoreWiDraftIfMatching(ref);
   }
 
   function closeWalkInModal() {
@@ -4125,6 +4127,7 @@ tr.candidate-row:hover td {
     updateMetrics();
     renderTable();
     closeWalkInModal();
+    if (dbSaveOk) clearWiDraft();
     if (dbSaveOk) {
       showToast(isEditing
         ? `Updated ${surname} ${firstName} (Reg No: ${newRef}) — synced to shared database`
@@ -4201,8 +4204,124 @@ tr.candidate-row:hover td {
     }
   });
 
+  // ==================== WALK-IN FORM DRAFT AUTOSAVE ====================
+  // Mobile browsers sometimes reload a backgrounded tab (e.g. switching to
+  // WhatsApp and back) to free memory, which wipes any unsaved typing.
+  // This continuously saves in-progress form entries to localStorage so
+  // nothing is lost even if that happens — and offers to restore on reload.
+  const WI_DRAFT_FIELD_IDS = [
+    'wiTitle','wiMaidenName','wiSurname','wiFirstName','wiOtherNames','wiDob','wiGender',
+    'wiMaritalStatus','wiReligion','wiDisability','wiPhone','wiEmail','wiStateOfOrigin','wiLga',
+    'wiAddress','wiCity','wiPostalAddress','wiNin','wiCourse','wiCategory','wiPreviousSchool',
+    'wiNokName','wiNokPhone','wiNokAddress','wiSponsorName','wiSponsorRelationship','wiSponsorPhone',
+    'wiSponsorEmail','wiSponsorAddress','wiRefereeName','wiRefereePhone','wiRefereeEmail','wiRefereeAddress',
+    'wiPaid','wiAppFeeAmount','wiNaStudent','wiSchoolFeeAmount','wiExamType','wiExamNumber','wiExamPeriod','wiExamYear'
+  ];
+
+  function saveWiDraft() {
+    try {
+      const modal = document.getElementById('walkInModal');
+      if (!modal || !modal.classList.contains('open')) return;
+      const fields = {};
+      WI_DRAFT_FIELD_IDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        fields[id] = (el.type === 'checkbox') ? el.checked : el.value;
+      });
+      const olevelRows = [];
+      document.querySelectorAll('#wiOlevelRows > div').forEach(row => {
+        const subj = row.querySelector('.wi-olevel-subject');
+        const grade = row.querySelector('.wi-olevel-grade');
+        olevelRows.push({ subject: subj ? subj.value : '', grade: grade ? grade.value : '' });
+      });
+      localStorage.setItem('bia_walkin_draft', JSON.stringify({
+        ref: editingCandidateRef,
+        fields: fields,
+        olevelRows: olevelRows,
+        savedAt: Date.now()
+      }));
+    } catch (e) {}
+  }
+
+  function clearWiDraft() {
+    try { localStorage.removeItem('bia_walkin_draft'); } catch (e) {}
+  }
+
+  function readWiDraft() {
+    try {
+      const d = JSON.parse(localStorage.getItem('bia_walkin_draft') || 'null');
+      if (!d || !d.savedAt || (Date.now() - d.savedAt) > 24 * 60 * 60 * 1000) { clearWiDraft(); return null; }
+      const hasContent = Object.values(d.fields || {}).some(v => v && String(v).trim() !== '');
+      return hasContent ? d : null;
+    } catch (e) { return null; }
+  }
+
+  function applyWiDraft(draft) {
+    Object.keys(draft.fields).forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (el.type === 'checkbox') el.checked = draft.fields[id]; else el.value = draft.fields[id];
+    });
+    if (document.getElementById('wiNaStudent')) toggleNaStudentLabel();
+    if (draft.olevelRows && draft.olevelRows.length) {
+      document.getElementById('wiOlevelRows').innerHTML = '';
+      wiOlevelRowCount = 0;
+      draft.olevelRows.forEach(() => addWiOlevelRow());
+      const rowEls = document.querySelectorAll('#wiOlevelRows > div');
+      draft.olevelRows.forEach((row, i) => {
+        if (rowEls[i]) {
+          rowEls[i].querySelector('.wi-olevel-subject').value = row.subject || '';
+          rowEls[i].querySelector('.wi-olevel-grade').value = row.grade || '';
+        }
+      });
+    }
+  }
+
+  // Called right after the modal is opened/populated, for either a fresh
+  // registration (expectedRef = null) or editing a specific candidate.
+  function restoreWiDraftIfMatching(expectedRef) {
+    const draft = readWiDraft();
+    if (!draft || draft.ref !== expectedRef) return;
+    if (!confirm('We found unsaved candidate details from earlier (the page may have reloaded mid-entry). Restore them now?')) {
+      clearWiDraft();
+      return;
+    }
+    applyWiDraft(draft);
+    showToast('Restored your unsaved details', 'success');
+  }
+
+  // If the page itself reloaded while the form was open (tab was killed
+  // in the background), the modal starts closed — so check on startup
+  // and offer to reopen + restore automatically.
+  function checkForWiDraftOnLoad() {
+    const draft = readWiDraft();
+    if (!draft) return;
+    if (!confirm('It looks like a candidate registration/edit was interrupted earlier and not saved. Resume where you left off?')) {
+      clearWiDraft();
+      return;
+    }
+    if (draft.ref) {
+      openEditCandidateModal(draft.ref);
+    } else {
+      openWalkInModal();
+    }
+    setTimeout(() => applyWiDraft(draft), 50);
+  }
+
+  let wiDraftSaveTimer = null;
+  document.getElementById('walkInForm').addEventListener('input', () => {
+    clearTimeout(wiDraftSaveTimer);
+    wiDraftSaveTimer = setTimeout(saveWiDraft, 400);
+  });
+  // Fires immediately when switching to another app — no debounce delay,
+  // so this is the main safety net against background tab reloads.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) saveWiDraft();
+  });
+
   // Initial Load
   fetchAllStudents();
+  checkForWiDraftOnLoad();
 </script>
 </body>
 </html>
