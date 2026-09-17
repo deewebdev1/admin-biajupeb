@@ -4179,8 +4179,11 @@ to { opacity: 1; transform: scale(1); }
     return `${parseInt(parts[2], 10)} ${months[parseInt(parts[1], 10) - 1]} ${parts[0]}`;
   }
 
-  function buildStatementOfResultHtml(candidateData, dateStr, subjects, status) {
+  function buildStatementOfResultHtml(candidateData, dateStr, subjects, status, pct) {
     const statusColor = status === 'ADMITTED' ? '#059669' : (status === 'NOT ADMITTED' ? '#DC2626' : '#D97706');
+    const totalScore = subjects.reduce((a, r) => a + r.score, 0);
+    const totalMax = subjects.reduce((a, r) => a + r.max, 0);
+    const aggregatePct = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : 0;
     const rows = subjects.map(r => `
       <tr>
         <td style="border:1px solid #000; padding:10px 14px;">${r.subject}</td>
@@ -4212,7 +4215,7 @@ to { opacity: 1; transform: scale(1); }
           <tr><td colspan="2" style="font-weight:700; padding:4px 0;">Programme: <span style="font-weight:400;">${candidateData.course}</span></td></tr>
         </table>
 
-        <table style="width:100%; border-collapse:collapse; margin:18px 0; font-size:13px;">
+        <table style="width:100%; border-collapse:collapse; margin:18px 0 4px; font-size:13px;">
           <thead>
             <tr style="background:#E31E24; color:#fff;">
               <th style="border:1px solid #000; padding:10px 14px; text-align:left;">SUBJECT</th>
@@ -4223,6 +4226,10 @@ to { opacity: 1; transform: scale(1); }
           <tbody>${rows}</tbody>
         </table>
 
+        <div style="text-align:right; font-weight:900; font-size:14px; margin:2px 0 18px;">
+          AGGREGATE SCORE: ${pct}%
+        </div>
+
         <div style="text-align:center; font-weight:900; font-size:14px; margin:18px 0;">
           RESULT STATUS: <span style="color:${statusColor};">${status}</span>
         </div>
@@ -4230,6 +4237,7 @@ to { opacity: 1; transform: scale(1); }
         <div style="font-size:11.5px; margin-top:8px; line-height:1.5;">
           <div style="color:#E31E24; font-weight:700;">OFFICIAL REMARK:</div>
           <div>Candidates who attain a score below the prescribed pass mark of 50% are required to enroll in the Special Class as a prerequisite for admission into the BIA JUPEB Programme. The Special Class attracts a fee of &#8358;150,000 (One Hundred and Fifty Thousand Naira Only).</div>
+          <div style="font-weight:700; margin-top:6px;">Resumption date for Special Private Class (Physical) is: 5th October 2026.</div>
         </div>
 
         <div style="text-align:right; margin-top:44px;">
@@ -4341,7 +4349,7 @@ to { opacity: 1; transform: scale(1); }
     const pct = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : 0;
     const status = resultStatusFromPercent(pct);
     const dateStr = formatDateLong(document.getElementById('resDate').value);
-    const html = buildStatementOfResultHtml(candidateData, dateStr, rows, status);
+    const html = buildStatementOfResultHtml(candidateData, dateStr, rows, status, pct);
     await downloadHtmlAsPdf(html, `Statement-of-Result-${(candidateData.ref || 'candidate').replace(/[^a-zA-Z0-9]+/g, '-')}.pdf`);
   }
 
@@ -4365,7 +4373,7 @@ to { opacity: 1; transform: scale(1); }
     const pct = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : 0;
     const status = resultStatusFromPercent(pct);
     const dateStr = formatDateLong(document.getElementById('resDate').value);
-    const html = buildStatementOfResultHtml(candidateData, dateStr, rows, status);
+    const html = buildStatementOfResultHtml(candidateData, dateStr, rows, status, pct);
 
     showToast(`Preparing Statement of Result for ${candidateData.email}...`, 'info');
     try {
@@ -4505,7 +4513,7 @@ to { opacity: 1; transform: scale(1); }
         const pct = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : 0;
         const status = resultStatusFromPercent(pct);
         const candidateData = { name: s.name, ref: s.ref, course: s.course, email: s.email };
-        const html = buildStatementOfResultHtml(candidateData, dateStr, subjectsWithGrades, status);
+        const html = buildStatementOfResultHtml(candidateData, dateStr, subjectsWithGrades, status, pct);
         const blob = await htmlToPdfBlob(html);
         const safeRef = (s.ref || 'candidate').replace(/[^a-zA-Z0-9]+/g, '-');
         const fileName = `${safeRef}-statement-of-result-${Date.now()}.pdf`;
