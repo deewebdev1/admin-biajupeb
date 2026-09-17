@@ -2072,7 +2072,7 @@ to { opacity: 1; transform: scale(1); }
 
         <button class="btn btn-secondary btn-sm" onclick="openWalkInModal()">
           <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          <span>Register New Candidate</span>
+          <span>+ Register New Candidate</span>
         </button>
 
         <button class="btn btn-primary btn-sm" onclick="openScanModal()">
@@ -3024,7 +3024,7 @@ to { opacity: 1; transform: scale(1); }
           </div>
           <div class="form-group">
             <label>Exam Year</label>
-            <input type="number" id="wiExamYear" class="form-input" placeholder="e.g. 2026" min="1915" max="2030">
+            <input type="number" id="wiExamYear" class="form-input" placeholder="e.g. 2026" min="2015" max="2030">
           </div>
         </div>
         <div class="form-group">
@@ -3810,6 +3810,10 @@ to { opacity: 1; transform: scale(1); }
         <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
         <span>Email Payment Slips to Student</span>
       </button>
+      <button class="btn btn-secondary" onclick="openAdmissionLetterModal('${student.ref}')" style="width:100%; margin-top:6px; border-color:#E31E24; color:#E31E24;">
+        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>Admission Letter (Download / Email)</span>
+      </button>
       <button class="btn btn-secondary" onclick="openResultModal('${student.ref}')" style="width:100%; margin-top:6px; border-color:#E31E24; color:#E31E24;">
         <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         <span>Statement of Result (Download / Email)</span>
@@ -4548,6 +4552,210 @@ to { opacity: 1; transform: scale(1); }
     if (failedNames.length) summary += '\n\nFailed/skipped details:\n' + failedNames.slice(0, 10).join('\n');
     alert(summary);
     showToast(`Bulk send complete — ${sent} sent, ${failed} failed`, sent > 0 ? 'success' : 'warning');
+  }
+
+  // ========================================================
+  // ADMISSION LETTER
+  // Matches the official BIA JUPEB reference design exactly. Fee amount
+  // is pulled from the same getSchoolFeeInfo() the rest of the app uses,
+  // so Science/Arts/Commercial/NA totals always stay in sync automatically.
+  // ========================================================
+  function numberToWordsNaira(num) {
+    const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+    const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+    function chunkToWords(n) {
+      let str = '';
+      if (n >= 100) {
+        str += ones[Math.floor(n / 100)] + ' Hundred';
+        n %= 100;
+        if (n > 0) str += ' and ';
+      }
+      if (n >= 20) {
+        str += tens[Math.floor(n / 10)];
+        if (n % 10 > 0) str += '-' + ones[n % 10];
+      } else if (n >= 10) {
+        str += teens[n - 10];
+      } else if (n > 0) {
+        str += ones[n];
+      }
+      return str;
+    }
+
+    if (num === 0) return 'Zero Naira Only.';
+    let words = '';
+    const millions = Math.floor(num / 1000000);
+    const thousands = Math.floor((num % 1000000) / 1000);
+    const remainder = num % 1000;
+    if (millions > 0) words += chunkToWords(millions) + ' Million ';
+    if (thousands > 0) words += chunkToWords(thousands) + ' Thousand';
+    if (remainder > 0) words += (words ? ', ' : '') + chunkToWords(remainder);
+    return words.trim() + ' Naira Only.';
+  }
+
+  function buildAdmissionLetterHtml(candidateData, dateStr, resumptionDateStr, feeTotal) {
+    const feeWords = numberToWordsNaira(feeTotal);
+    const feeFormatted = feeTotal.toLocaleString('en-NG');
+
+    return `
+    <div style="width:800px; font-family:'Plus Jakarta Sans', Arial, sans-serif; position:relative; background:#fff;">
+      <div style="position:relative; height:70px; background:#000; overflow:hidden;">
+        <div style="position:absolute; top:0; left:0; width:340px; height:70px; background:#E31E24; clip-path:polygon(0 0, 75% 0, 55% 100%, 0% 100%);"></div>
+        <div style="position:absolute; top:0; left:60px; width:280px; height:70px; background:#000; clip-path:polygon(0 0, 75% 0, 55% 100%, 0% 100%);"></div>
+        <img src="${LOGO_SRC}" style="position:absolute; top:12px; right:30px; height:46px; width:auto;">
+      </div>
+
+      <div style="padding:24px 50px 40px;">
+        <h1 style="text-align:center; font-size:26px; font-weight:900; margin:8px 0 2px; letter-spacing:0.3px;">BOMA INTELLECTUAL ACADEMY</h1>
+        <div style="text-align:center; font-size:15px; font-weight:700;">OFFICIAL ADMISSION LETTER</div>
+        <div style="text-align:center; font-size:12px; font-weight:700; margin-bottom:18px;">SESSION: 2026/2027</div>
+
+        <table style="width:100%; margin-bottom:6px; font-size:13px; border-collapse:collapse;">
+          <tr>
+            <td style="font-weight:700; padding:4px 0;">Student's Name: <span style="font-weight:400;">${candidateData.name}</span></td>
+            <td style="font-weight:700; padding:4px 0; text-align:right;">Date: <span style="font-weight:400;">${dateStr}</span></td>
+          </tr>
+          <tr><td colspan="2" style="font-weight:700; padding:4px 0;">Registration No: <span style="font-weight:400;">${candidateData.ref}</span></td></tr>
+        </table>
+
+        <div style="margin:16px 0; font-size:13px;">Dear <span style="font-weight:700;">${candidateData.name}</span>,</div>
+
+        <h2 style="text-align:center; font-size:18px; font-weight:900; margin:18px 0;">OFFER OF ADMISSION</h2>
+
+        <div style="font-size:13px; line-height:1.6;">
+          We are pleased to offer you admission into Boma Intellectual Academy for the 2026/2027 Academic Session
+        </div>
+
+        <div style="font-size:13px; margin-top:14px; font-weight:700;">TOTAL SCHOOL FEE: &#8358;${feeFormatted}</div>
+        <div style="font-size:13px; font-weight:700;">${feeWords}</div>
+
+        <div style="font-size:13px; margin-top:14px; line-height:1.6;">
+          All fees are to be paid in accordance with the approved payment plan and within the stipulated time. Students are expected to fulfill their financial obligations as scheduled.
+        </div>
+
+        <div style="font-size:13px; margin-top:14px; line-height:1.6;">
+          <span style="font-weight:700;">NOTE: All School fees and payments made to the Academy are non-refundable.</span>
+          Students who require additional academic support may optionally enroll in the Special Class at an additional fee of &#8358;150,000.
+        </div>
+
+        <div style="font-size:13px; margin-top:10px; font-weight:700; line-height:1.6;">
+          The Special Class includes extra academic classes and extracurricular activities after regular classes.
+        </div>
+
+        <div style="font-size:13px; margin-top:18px; font-weight:700;">Resumption Date: <span style="font-weight:400;">${resumptionDateStr}</span></div>
+
+        <div style="font-size:13px; margin-top:14px; line-height:1.6;">
+          We congratulate you on your admission and look forward to welcoming you to Boma Intellectual Academy.
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:48px;">
+          <div style="font-size:11px;">
+            <div style="color:#E31E24; font-weight:700;">FOR MORE ENQUIRIES</div>
+            <div>Email: officialbiajupeb@gmail.com</div>
+            <div>Phone: +2347012388184</div>
+            <div>Website: biajupeb.com.ng / biajupeb.org.ng</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-weight:700; color:#E31E24; font-size:11px;">Director</div>
+            <div style="font-weight:900; font-size:12.5px;">Hon. Busari Oyebamiji</div>
+            <img src="${SIGNATURE_SRC}" style="height:44px; margin-top:2px;">
+            <div style="border-top:1px solid #000; width:200px; margin-left:auto;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="position:relative; height:36px; background:#000; overflow:hidden;">
+        <div style="position:absolute; top:0; right:0; width:340px; height:36px; background:#E31E24; clip-path:polygon(25% 0, 100% 0, 100% 100%, 45% 100%);"></div>
+      </div>
+    </div>`;
+  }
+
+  let currentAdmissionLetterRef = null;
+
+  function openAdmissionLetterModal(ref) {
+    const s = allStudents.find(x => x.ref === ref);
+    if (!s) { showToast('Candidate record not found', 'warning'); return; }
+    currentAdmissionLetterRef = ref;
+    document.getElementById('admCandidateName').value = s.name || '';
+    document.getElementById('admRegNo').value = s.ref || '';
+    document.getElementById('admDate').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('admResumptionDate').value = '';
+    const isNA = !!(s.raw && s.raw.is_na_student);
+    const feeTotal = getSchoolFeeInfo(s.category, 'unpaid', isNA).total;
+    document.getElementById('admFeePreview').textContent = `Total School Fee: ₦${feeTotal.toLocaleString('en-NG')}`;
+    document.getElementById('admissionLetterModal').style.display = 'flex';
+  }
+
+  function closeAdmissionLetterModal() {
+    document.getElementById('admissionLetterModal').style.display = 'none';
+    currentAdmissionLetterRef = null;
+  }
+
+  function buildAdmissionLetterForCurrent() {
+    const s = allStudents.find(x => x.ref === currentAdmissionLetterRef);
+    if (!s) return null;
+    const dateVal = document.getElementById('admDate').value;
+    const resumptionVal = document.getElementById('admResumptionDate').value;
+    if (!dateVal) { showToast('Please select a date for the letter', 'warning'); return null; }
+    if (!resumptionVal) { showToast('Please select a resumption date', 'warning'); return null; }
+    const isNA = !!(s.raw && s.raw.is_na_student);
+    const feeTotal = getSchoolFeeInfo(s.category, 'unpaid', isNA).total;
+    const candidateData = { name: s.name, ref: s.ref, email: s.email };
+    const html = buildAdmissionLetterHtml(candidateData, formatDateLong(dateVal), formatDateLong(resumptionVal), feeTotal);
+    return { html, candidateData };
+  }
+
+  async function downloadAdmissionLetter() {
+    const built = buildAdmissionLetterForCurrent();
+    if (!built) return;
+    await downloadHtmlAsPdf(built.html, `Admission-Letter-${(built.candidateData.ref || 'candidate').replace(/[^a-zA-Z0-9]+/g, '-')}.pdf`);
+  }
+
+  async function emailAdmissionLetter() {
+    const built = buildAdmissionLetterForCurrent();
+    if (!built) return;
+    const { html, candidateData } = built;
+    if (!candidateData.email || candidateData.email === '—') {
+      showToast('No valid email address recorded for candidate', 'warning');
+      return;
+    }
+    if (!window.emailjs) { showToast('Email service not loaded', 'warning'); return; }
+    if (!supabaseClient) { showToast('Storage not connected — cannot host documents', 'warning'); return; }
+
+    showToast(`Preparing Admission Letter for ${candidateData.email}...`, 'info');
+    try {
+      const blob = await htmlToPdfBlob(html);
+      const safeRef = (candidateData.ref || 'candidate').replace(/[^a-zA-Z0-9]+/g, '-');
+      const fileName = `${safeRef}-admission-letter-${Date.now()}.pdf`;
+
+      const { error: uploadErr } = await supabaseClient.storage
+        .from('application-documents')
+        .upload(fileName, blob, { contentType: 'application/pdf', upsert: false });
+      if (uploadErr) throw uploadErr;
+
+      const { data: urlData } = supabaseClient.storage.from('application-documents').getPublicUrl(fileName);
+
+      await window.emailjs.send('service_5czv47g', 'template_xbwn8mh', {
+        to_email: candidateData.email,
+        candidate_name: candidateData.name,
+        ref_number: candidateData.ref,
+        course: '',
+        track: '',
+        phone: '',
+        message: 'Your Admission Letter is ready — use the link below to download it.',
+        document_links_html: `<p><a href="${urlData.publicUrl}" style="color:#a50000; font-weight:600;">Download Admission Letter</a></p>`,
+        application_slip_url: urlData.publicUrl,
+        biodata_sheet_url: urlData.publicUrl
+      });
+
+      showToast(`Admission Letter emailed to ${candidateData.email}`, 'success');
+    } catch (err) {
+      console.log('Email admission letter error:', err);
+      const errText = (err && (err.message || err.text || JSON.stringify(err))) || String(err);
+      alert('Could not send Admission Letter:\n\n' + errText);
+      showToast('Could not send Admission Letter — see error popup', 'warning');
+    }
   }
 
   // ========================================================
@@ -6827,6 +7035,42 @@ arts | Lawal Mariyn | Maths:14:20, English:17:20, Lit:13:15, CRS:13:15, Governme
     <div class="modal-footer" style="flex-shrink:0; display:flex; gap:8px;">
       <button class="btn btn-secondary" onclick="closeBulkResultsModal()">Cancel</button>
       <button class="btn btn-primary" onclick="sendAllBulkResults()">Send to All Matched Candidates</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ADMISSION LETTER MODAL ==================== -->
+<div class="modal-overlay" id="admissionLetterModal" style="display:none;">
+  <div class="modal-box" style="max-width:560px;">
+    <div class="modal-header">
+      <h3>Admission Letter</h3>
+      <button class="modal-close" onclick="closeAdmissionLetterModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Candidate</label>
+        <input type="text" id="admCandidateName" class="form-input" readonly>
+      </div>
+      <div class="form-group">
+        <label>Registration No</label>
+        <input type="text" id="admRegNo" class="form-input" readonly>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Date on Letter</label>
+          <input type="date" id="admDate" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Resumption Date</label>
+          <input type="date" id="admResumptionDate" class="form-input">
+        </div>
+      </div>
+      <div id="admFeePreview" style="font-size:13px; font-weight:700; color:#E31E24; margin-top:6px;"></div>
+    </div>
+    <div class="modal-footer" style="display:flex; gap:8px;">
+      <button class="btn btn-secondary" onclick="closeAdmissionLetterModal()">Cancel</button>
+      <button class="btn btn-secondary" onclick="downloadAdmissionLetter()">Download PDF</button>
+      <button class="btn btn-primary" onclick="emailAdmissionLetter()">Email to Candidate</button>
     </div>
   </div>
 </div>
