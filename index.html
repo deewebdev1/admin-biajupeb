@@ -2072,7 +2072,7 @@ to { opacity: 1; transform: scale(1); }
 
         <button class="btn btn-secondary btn-sm" onclick="openWalkInModal()">
           <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          <span>+ Register New Candidate</span>
+          <span>Register New Candidate</span>
         </button>
 
         <button class="btn btn-primary btn-sm" onclick="openScanModal()">
@@ -3024,7 +3024,7 @@ to { opacity: 1; transform: scale(1); }
           </div>
           <div class="form-group">
             <label>Exam Year</label>
-            <input type="number" id="wiExamYear" class="form-input" placeholder="e.g. 2026" min="2015" max="2030">
+            <input type="number" id="wiExamYear" class="form-input" placeholder="e.g. 2026" min="1915" max="2030">
           </div>
         </div>
         <div class="form-group">
@@ -6174,10 +6174,8 @@ to { opacity: 1; transform: scale(1); }
   // ==========================================
   // REAL SCANNER PRESENCE DETECTION (WebHID)
   // ==========================================
-  // No vendor filtering — fingerprint scanners come from many brands and
-  // we can't guess them all. The admin picks their actual device from
-  // Chrome's picker once; that explicit grant IS the "connected" check,
-  // whatever brand it turns out to be.
+  // Known USB vendor IDs for fingerprint scanner brands.
+  const SCANNER_VENDOR_IDS = [0x05BA, 0x1162]; // HID Global/DigitalPersona, SecuGen
   let scannerConnected = false;
 
   function updateScannerStatusUI() {
@@ -6185,7 +6183,7 @@ to { opacity: 1; transform: scale(1); }
     const label = document.querySelector('.hw-status-indicator span:last-child');
     if (!label) return;
     if (scannerConnected) {
-      label.textContent = 'USB Scanner Connected • Ready';
+      label.textContent = 'SecuGen / DigitalPersona USB Scanner Connected • Ready';
       if (dot) dot.style.background = '#10B981';
     } else {
       label.textContent = 'No Fingerprint Scanner Detected — Click to Connect';
@@ -6197,7 +6195,7 @@ to { opacity: 1; transform: scale(1); }
     if (!navigator.hid) { scannerConnected = false; updateScannerStatusUI(); return; }
     try {
       const devices = await navigator.hid.getDevices();
-      scannerConnected = devices.length > 0;
+      scannerConnected = devices.some(d => SCANNER_VENDOR_IDS.includes(d.vendorId));
     } catch (e) {
       scannerConnected = false;
     }
@@ -6210,11 +6208,11 @@ to { opacity: 1; transform: scale(1); }
       return;
     }
     try {
-      // No filters — shows every connected USB HID device so the admin
-      // can pick their actual scanner regardless of brand.
-      const granted = await navigator.hid.requestDevice({ filters: [] });
+      const granted = await navigator.hid.requestDevice({
+        filters: SCANNER_VENDOR_IDS.map(vendorId => ({ vendorId }))
+      });
       if (granted.length > 0) {
-        showToast(`Connected: ${granted[0].productName || 'USB device'}`, 'success');
+        showToast('Scanner connected', 'success');
       }
     } catch (e) {
       // user cancelled the picker — no action needed
