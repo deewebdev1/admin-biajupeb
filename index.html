@@ -2072,7 +2072,7 @@ to { opacity: 1; transform: scale(1); }
 
         <button class="btn btn-secondary btn-sm" onclick="openWalkInModal()">
           <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          <span> Register New Candidate</span>
+          <span>+ Register New Candidate</span>
         </button>
 
         <button class="btn btn-primary btn-sm" onclick="openScanModal()">
@@ -3024,7 +3024,7 @@ to { opacity: 1; transform: scale(1); }
           </div>
           <div class="form-group">
             <label>Exam Year</label>
-            <input type="number" id="wiExamYear" class="form-input" placeholder="e.g. 2026" min="1915" max="2030">
+            <input type="number" id="wiExamYear" class="form-input" placeholder="e.g. 2026" min="1924" max="2030">
           </div>
         </div>
         <div class="form-group">
@@ -4240,8 +4240,8 @@ to { opacity: 1; transform: scale(1); }
 
         <div style="font-size:11.5px; margin-top:8px; line-height:1.5;">
           <div style="color:#E31E24; font-weight:700;">OFFICIAL REMARK:</div>
-          <div>Candidates who attain a score below the prescribed pass mark of 50% are required to enroll in the Special Class as a prerequisite for admission into the BIA JUPEB Programme. The Special Class attracts a fee of &#8358;150,000 (One Hundred and Fifty Thousand Naira Only).</div>
-          <div style="font-weight:700; margin-top:6px;">Resumption date for Special Private Class (Physical) is: 5th October 2026.</div>
+          <div>The Special Class will commence after resumption, following the free classes which will begin on 5th October.</div>
+          <div style="margin-top:6px;">Further information regarding the Special Class fee and payment details will be communicated to students after resumption.</div>
         </div>
 
         <div style="text-align:right; margin-top:44px;">
@@ -4680,7 +4680,7 @@ to { opacity: 1; transform: scale(1); }
     document.getElementById('admCandidateName').value = s.name || '';
     document.getElementById('admRegNo').value = s.ref || '';
     document.getElementById('admDate').value = new Date().toISOString().slice(0, 10);
-    document.getElementById('admResumptionDate').value = '';
+    document.getElementById('admResumptionDate').value = '2026-11-02';
     const isNA = !!(s.raw && s.raw.is_na_student);
     const feeTotal = getSchoolFeeInfo(s.category, 'unpaid', isNA).total;
     document.getElementById('admFeePreview').textContent = `Total School Fee: ₦${feeTotal.toLocaleString('en-NG')}`;
