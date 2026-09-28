@@ -3024,7 +3024,7 @@ to { opacity: 1; transform: scale(1); }
           </div>
           <div class="form-group">
             <label>Exam Year</label>
-            <input type="number" id="wiExamYear" class="form-input" placeholder="e.g. 2026" min="1924" max="2030">
+            <input type="number" id="wiExamYear" class="form-input" placeholder="e.g. 2026" min="2015" max="2030">
           </div>
         </div>
         <div class="form-group">
@@ -4180,7 +4180,10 @@ to { opacity: 1; transform: scale(1); }
     const parts = isoDate.split('-');
     if (parts.length !== 3) return isoDate;
     const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    return `${parseInt(parts[2], 10)} ${months[parseInt(parts[1], 10) - 1]} ${parts[0]}`;
+    const day = parseInt(parts[2], 10);
+    const lastTwo = day % 100, lastOne = day % 10;
+    const suffix = (lastTwo >= 11 && lastTwo <= 13) ? 'th' : (lastOne === 1 ? 'st' : lastOne === 2 ? 'nd' : lastOne === 3 ? 'rd' : 'th');
+    return `${day}${suffix} ${months[parseInt(parts[1], 10) - 1]} ${parts[0]}`;
   }
 
   function buildStatementOfResultHtml(candidateData, dateStr, subjects, status, pct) {
@@ -5583,7 +5586,7 @@ to { opacity: 1; transform: scale(1); }
   let editingCandidateRef = null;
   let editingCandidateId = null;
 
-  function openWalkInModal() {
+  function openWalkInModal(skipDraftPrompt) {
     editingCandidateRef = null;
     editingCandidateId = null;
     document.querySelector('#walkInModal h3').textContent = 'Register New Candidate';
@@ -5597,10 +5600,10 @@ to { opacity: 1; transform: scale(1); }
     document.getElementById('wiPhotoPreview').innerHTML = 'No photo';
     document.getElementById('wiNaStudent').checked = false;
     toggleNaStudentLabel();
-    restoreWiDraftIfMatching(null);
+    if (!skipDraftPrompt) restoreWiDraftIfMatching(null);
   }
 
-  function openEditCandidateModal(ref) {
+  function openEditCandidateModal(ref, skipDraftPrompt) {
     const s = allStudents.find(item => item.ref === ref);
     if (!s || !s.raw) {
       showToast('Could not load candidate details for editing', 'warning');
@@ -5680,7 +5683,7 @@ to { opacity: 1; transform: scale(1); }
     document.getElementById('wiPhotoPreview').innerHTML = wiPhotoDataUrl
       ? `<img src="${wiPhotoDataUrl}" style="width:100%;height:100%;object-fit:cover;">`
       : 'No photo';
-    restoreWiDraftIfMatching(ref);
+    if (!skipDraftPrompt) restoreWiDraftIfMatching(ref);
   }
 
   function closeWalkInModal() {
@@ -6129,16 +6132,24 @@ to { opacity: 1; transform: scale(1); }
   function checkForWiDraftOnLoad() {
     const draft = readWiDraft();
     if (!draft) return;
+
+    // An edit draft needs that candidate's record to be loaded first.
+    if (draft.ref && !allStudents.find(s => s.ref === draft.ref)) {
+      showToast('You had an unsaved edit that could not be reopened (candidate not found). Open the candidate and edit again.', 'warning');
+      return;
+    }
+
     if (!confirm('It looks like a candidate registration/edit was interrupted earlier and not saved. Resume where you left off?')) {
       clearWiDraft();
       return;
     }
     if (draft.ref) {
-      openEditCandidateModal(draft.ref);
+      openEditCandidateModal(draft.ref, true);
     } else {
-      openWalkInModal();
+      openWalkInModal(true);
     }
-    setTimeout(() => applyWiDraft(draft), 50);
+    applyWiDraft(draft);
+    showToast('Restored your unsaved details', 'success');
   }
 
   let wiDraftSaveTimer = null;
@@ -6151,10 +6162,13 @@ to { opacity: 1; transform: scale(1); }
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) saveWiDraft();
   });
+  document.getElementById('walkInForm').addEventListener('change', saveWiDraft);
+  window.addEventListener('pagehide', saveWiDraft);
+  setInterval(saveWiDraft, 4000); // safety net while the form is open
 
-  // Initial Load
-  fetchAllStudents();
-  checkForWiDraftOnLoad();
+  // Initial Load — wait for the candidate list before checking for an
+  // interrupted draft, so an interrupted EDIT can actually be reopened.
+  Promise.resolve(fetchAllStudents()).then(checkForWiDraftOnLoad, checkForWiDraftOnLoad);
 
   // ==================== BIOMETRIC REVIEW DESK (merged from admin-review.html) ====================
 
