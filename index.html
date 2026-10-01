@@ -3164,7 +3164,7 @@ to { opacity: 1; transform: scale(1); }
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       if (window.emailjs) {
-        window.emailjs.init('4fXlPPwE6WWPkDCq1');
+        window.emailjs.init('4fXlPPwE6WPkDCq1');
       }
 
       document.getElementById('sbLogoSlot').innerHTML = '<img src="' + LOGO_SRC + '" style="height:30px;width:auto;object-fit:contain;">';
@@ -3870,7 +3870,7 @@ to { opacity: 1; transform: scale(1); }
 
     if (window.emailjs) {
       try {
-        window.emailjs.send('', '', {
+        window.emailjs.send('service_5cz47g', 'template_xbw8mh', {
           to_email: s.email,
           candidate_name: s.name,
           ref_number: s.ref,
@@ -3900,7 +3900,7 @@ to { opacity: 1; transform: scale(1); }
 
     if (window.emailjs) {
       try {
-        window.emailjs.send('', '', {
+        window.emailmh', {
           to_email: s.email,
           candidate_name: s.name,
           ref_number: s.ref,
@@ -4052,7 +4052,7 @@ to { opacity: 1; transform: scale(1); }
         <a href="${biodataUrlData.publicUrl}" style="color:#a50000; font-weight:600;">Download Biodata Sheet</a>
       </p>`;
 
-      await window.emailjs.send('', '', {
+      await window.emailjs.send('service_5cz47g', 'template_xbwnmh', {
         to_email: s.email,
         candidate_name: s.name,
         ref_number: s.ref,
@@ -4127,7 +4127,7 @@ to { opacity: 1; transform: scale(1); }
         <a href="${schoolFeeUrlData.publicUrl}" style="color:#a50000; font-weight:600;">Download School Fee Slip</a>
       </p>`;
 
-      await window.emailjs.send('service_5czv47g', 'template_xbwn8mh', {
+      await window.emailjs.send('service_5cz47g', 'template_xbwnmh', {
         to_email: s.email,
         candidate_name: s.name,
         ref_number: s.ref,
@@ -4395,7 +4395,7 @@ to { opacity: 1; transform: scale(1); }
 
       const { data: urlData } = supabaseClient.storage.from('application-documents').getPublicUrl(fileName);
 
-      await window.emailjs.send('', '', {
+      await window.emailjs.send('service_5czv4g', 'template_xbwnmh', {
         to_email: candidateData.email,
         candidate_name: candidateData.name,
         ref_number: candidateData.ref,
@@ -4532,7 +4532,7 @@ to { opacity: 1; transform: scale(1); }
 
         const { data: urlData } = supabaseClient.storage.from('application-documents').getPublicUrl(fileName);
 
-        await window.emailjs.send('', '', {
+        await window.emailjs.send('service_5cz47g', 'template_xbn8mh', {
           to_email: s.email,
           candidate_name: s.name,
           ref_number: s.ref,
@@ -4739,7 +4739,7 @@ to { opacity: 1; transform: scale(1); }
 
       const { data: urlData } = supabaseClient.storage.from('application-documents').getPublicUrl(fileName);
 
-      await window.emailjs.send('', '', {
+      await window.emailjs.send('service_5cz47g', 'template_xbn8mh', {
         to_email: candidateData.email,
         candidate_name: candidateData.name,
         ref_number: candidateData.ref,
@@ -6787,7 +6787,7 @@ to { opacity: 1; transform: scale(1); }
     }
 
     if (window.emailjs) {
-      window.emailjs.send('', '', {
+      window.emailjs.send('service_5cz47g', 'templte_xbwn8mh', {
         to_email: s.email,
         to_name: s.name || `${s.surname || ''} ${s.firstName || ''}`.trim(),
         matric_number: s.ref || s.matricNo,
