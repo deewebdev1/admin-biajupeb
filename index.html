@@ -6175,6 +6175,7 @@ to { opacity: 1; transform: scale(1); }
   // Live Supabase Cloud Database Configuration
   let activeStudent = null;
   let activeRef = null;
+  let loadCandidateRequestToken = 0;
   let faceStream = null;
 
   const fingerKeys = [
@@ -6279,6 +6280,7 @@ to { opacity: 1; transform: scale(1); }
   async function loadCandidate(refArg) {
     const params = new URLSearchParams(window.location.search);
     activeRef = refArg || params.get('ref');
+    const myRequestToken = ++loadCandidateRequestToken;
 
     let loaded = null;
 
@@ -6292,6 +6294,7 @@ to { opacity: 1; transform: scale(1); }
           .maybeSingle();
 
         if (!error && data) {
+          const realSubjects = (data.olevel_grades && (Array.isArray(data.olevel_grades) ? data.olevel_grades : data.olevel_grades.subjects)) || [];
           loaded = {
             id: data.id,
             ref: data.ref_number,
@@ -6313,7 +6316,10 @@ to { opacity: 1; transform: scale(1); }
             status: data.status,
             nin: data.nin,
             previousSchool: data.previous_school,
-            subjects: (data.olevel_grades && (Array.isArray(data.olevel_grades) ? data.olevel_grades : data.olevel_grades.subjects) || []).length ? (Array.isArray(data.olevel_grades) ? data.olevel_grades : data.olevel_grades.subjects) : sampleCandidate.subjects,
+            // Never substitute the placeholder's WAEC results for a real
+            // candidate — an empty list here means "no results entered
+            // yet", not "show someone else's grades".
+            subjects: realSubjects,
             examType: (data.olevel_grades && !Array.isArray(data.olevel_grades)) ? data.olevel_grades.exam_type : '',
             examNumber: (data.olevel_grades && !Array.isArray(data.olevel_grades)) ? data.olevel_grades.exam_number : '',
             photo: data.photo_url
@@ -6324,23 +6330,19 @@ to { opacity: 1; transform: scale(1); }
       }
     }
 
-    // 2. Fetch from LocalStorage fallback
-    if (!loaded && activeRef) {
-      try {
-        const stored = JSON.parse(localStorage.getItem('bia_applications') || '[]');
-        loaded = stored.find(s => s.ref === activeRef || s.matricNo === activeRef || s.refNumber === activeRef);
-      } catch (e) {}
-    }
+    // A newer loadCandidate() call has started since this one began (the
+    // admin clicked a different candidate before this request finished)
+    // — discard this result so it can never overwrite the newer screen.
+    if (myRequestToken !== loadCandidateRequestToken) return;
 
     if (!loaded) {
-      try {
-        loaded = JSON.parse(localStorage.getItem('bia_latest_app') || 'null');
-      } catch (e) {}
-    }
-
-    if (!loaded) {
-      loaded = sampleCandidate;
-      activeRef = sampleCandidate.ref;
+      // No real match found. Showing demo/placeholder data here would
+      // look exactly like a wrong-candidate mix-up, so show a clear
+      // error state instead — never silently substitute another record.
+      activeStudent = null;
+      showToast('Could not load this candidate\'s record — please close and try again.', 'warning');
+      renderCandidateDetails();
+      return;
     }
 
     activeStudent = loaded;
@@ -6349,6 +6351,12 @@ to { opacity: 1; transform: scale(1); }
 
   function renderCandidateDetails() {
     const s = activeStudent;
+    if (!s) {
+      document.getElementById('heroStudentName').textContent = 'Candidate not found';
+      document.getElementById('heroRegNo').textContent = '—';
+      document.getElementById('heroCourseName').textContent = '—';
+      return;
+    }
     const name = s.name || `${s.surname || ''} ${s.firstName || ''}`.trim() || 'Candidate';
     const regNo = s.ref || s.matricNo || '240806045';
     const course = s.course || s.programme || 'JUPEB Foundation Track';
@@ -6964,8 +6972,8 @@ to { opacity: 1; transform: scale(1); }
     }, 250);
   }
 
-  // Initial Load
-  loadCandidate();
+  // Candidate loading for this panel is triggered by openReviewDesk(ref)
+  // when an admin actually opens it for a specific candidate — not here.
 
 </script>
 <!-- ==================== STATEMENT OF RESULT MODAL (Individual) ==================== -->
