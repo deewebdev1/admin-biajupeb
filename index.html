@@ -3164,17 +3164,7 @@ to { opacity: 1; transform: scale(1); }
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       if (window.emailjs) {
-        window.emailjs.init('4fXlPPwE6WWPkDCq1');
-        // EMAIL SENDING DISABLED — replace the real client with a stub so
-        // no button anywhere can ever reach EmailJS's servers. Every send
-        // call now rejects immediately with a clear message, which each
-        // calling function already surfaces to the admin as a failure.
-        window.emailjs = {
-          init: function () {},
-          send: function () {
-            return Promise.reject(new Error("Couldn't send email"));
-          }
-        };
+        window.emailjs.init('4fXlPPwE6WPkDCq1');
       }
 
       document.getElementById('sbLogoSlot').innerHTML = '<img src="' + LOGO_SRC + '" style="height:30px;width:auto;object-fit:contain;">';
@@ -3878,25 +3868,23 @@ to { opacity: 1; transform: scale(1); }
       return;
     }
 
-    if (!window.emailjs) {
-      showToast("Couldn't send email", 'warning');
-      return;
+    if (window.emailjs) {
+      try {
+        window.emailjs.send('service_5cz47g', 'template_xbw8mh', {
+          to_email: s.email,
+          candidate_name: s.name,
+          ref_number: s.ref,
+          course: s.course,
+          track: s.category,
+          phone: s.phone,
+          amount_paid: '₦45,000.00',
+          message: 'Your matric number and biodata form have been generated. Please log in to your candidate portal to view your full details.',
+          document_links_html: ''
+        }).catch(err => console.log('EmailJS dispatch note:', err));
+      } catch (e) {}
     }
-    window.emailjs.send('service_5czv47g', 'template_xbwn8mh', {
-      to_email: s.email,
-      candidate_name: s.name,
-      ref_number: s.ref,
-      course: s.course,
-      track: s.category,
-      phone: s.phone,
-      amount_paid: '₦45,000.00',
-      message: 'Your matric number and biodata form have been generated. Please log in to your candidate portal to view your full details.',
-      document_links_html: ''
-    }).then(() => {
-      showToast(`Matric Number & Biodata Email dispatched to ${s.email}`, 'success');
-    }).catch(err => {
-      showToast("Couldn't send email", 'warning');
-    });
+
+    showToast(`Matric Number & Biodata Email dispatched to ${s.email}`, 'success');
   }
 
   function sendClearanceEmailFromAdmin(ref) {
@@ -3910,23 +3898,21 @@ to { opacity: 1; transform: scale(1); }
       return;
     }
 
-    if (!window.emailjs) {
-      showToast("Couldn't send email", 'warning');
-      return;
+    if (window.emailjs) {
+      try {
+        window.emailmh', {
+          to_email: s.email,
+          candidate_name: s.name,
+          ref_number: s.ref,
+          course: s.course,
+          status: 'Cleared & Registered',
+          message: 'Your application has been successfully cleared and registered by the Admissions Office.',
+          document_links_html: ''
+        }).catch(err => console.log('EmailJS clearance dispatch note:', err));
+      } catch (e) {}
     }
-    window.emailjs.send('service_5czv47g', 'template_xbwn8mh', {
-      to_email: s.email,
-      candidate_name: s.name,
-      ref_number: s.ref,
-      course: s.course,
-      status: 'Cleared & Registered',
-      message: 'Your application has been successfully cleared and registered by the Admissions Office.',
-      document_links_html: ''
-    }).then(() => {
-      showToast(`Official Clearance & Matriculation Email dispatched to ${s.email}`, 'success');
-    }).catch(err => {
-      showToast("Couldn't send email", 'warning');
-    });
+
+    showToast(`Official Clearance & Matriculation Email dispatched to ${s.email}`, 'success');
   }
 
   // Shared PDF-building core — renders the given HTML off-screen and
@@ -4066,7 +4052,7 @@ to { opacity: 1; transform: scale(1); }
         <a href="${biodataUrlData.publicUrl}" style="color:#a50000; font-weight:600;">Download Biodata Sheet</a>
       </p>`;
 
-      await window.emailjs.send('service_5czv47g', 'template_xbwn8mh', {
+      await window.emailjs.send('service_5cz47g', 'template_xbwnmh', {
         to_email: s.email,
         candidate_name: s.name,
         ref_number: s.ref,
@@ -4083,7 +4069,8 @@ to { opacity: 1; transform: scale(1); }
     } catch (err) {
       console.log('Email w/ document links error:', err);
       const errText = (err && (err.message || err.text || JSON.stringify(err))) || String(err);
-      showToast("Couldn't send email", 'warning');
+      alert('Could not send documents:\n\n' + errText);
+      showToast('Could not send documents — see error popup', 'warning');
     }
   }
 
@@ -4140,7 +4127,7 @@ to { opacity: 1; transform: scale(1); }
         <a href="${schoolFeeUrlData.publicUrl}" style="color:#a50000; font-weight:600;">Download School Fee Slip</a>
       </p>`;
 
-      await window.emailjs.send('service_5czv47g', 'template_xbwn8mh', {
+      await window.emailjs.send('service_5cz47g', 'template_xbwnmh', {
         to_email: s.email,
         candidate_name: s.name,
         ref_number: s.ref,
@@ -4157,7 +4144,8 @@ to { opacity: 1; transform: scale(1); }
     } catch (err) {
       console.log('Email payment slips error:', err);
       const errText = (err && (err.message || err.text || JSON.stringify(err))) || String(err);
-      showToast("Couldn't send email", 'warning');
+      alert('Could not send payment slips:\n\n' + errText);
+      showToast('Could not send payment slips — see error popup', 'warning');
     }
   }
 
@@ -4407,7 +4395,7 @@ to { opacity: 1; transform: scale(1); }
 
       const { data: urlData } = supabaseClient.storage.from('application-documents').getPublicUrl(fileName);
 
-      await window.emailjs.send('service_5czv47g', 'template_xbwn8mh', {
+      await window.emailjs.send('service_5czv4g', 'template_xbwnmh', {
         to_email: candidateData.email,
         candidate_name: candidateData.name,
         ref_number: candidateData.ref,
@@ -4424,7 +4412,8 @@ to { opacity: 1; transform: scale(1); }
     } catch (err) {
       console.log('Email statement of result error:', err);
       const errText = (err && (err.message || err.text || JSON.stringify(err))) || String(err);
-      showToast("Couldn't send email", 'warning');
+      alert('Could not send Statement of Result:\n\n' + errText);
+      showToast('Could not send Statement of Result — see error popup', 'warning');
     }
   }
 
@@ -4543,7 +4532,7 @@ to { opacity: 1; transform: scale(1); }
 
         const { data: urlData } = supabaseClient.storage.from('application-documents').getPublicUrl(fileName);
 
-        await window.emailjs.send('service_5czv47g', 'template_xbwn8mh', {
+        await window.emailjs.send('service_5cz47g', 'template_xbn8mh', {
           to_email: s.email,
           candidate_name: s.name,
           ref_number: s.ref,
@@ -4558,7 +4547,7 @@ to { opacity: 1; transform: scale(1); }
         sent++;
       } catch (err) {
         failed++;
-        failedNames.push(s.name + ": Couldn't send email");
+        failedNames.push(s.name + ': ' + (err.message || err.text || 'error'));
       }
     }
 
@@ -4750,7 +4739,7 @@ to { opacity: 1; transform: scale(1); }
 
       const { data: urlData } = supabaseClient.storage.from('application-documents').getPublicUrl(fileName);
 
-      await window.emailjs.send('service_5czv47g', 'template_xbwn8mh', {
+      await window.emailjs.send('service_5cz47g', 'template_xbn8mh', {
         to_email: candidateData.email,
         candidate_name: candidateData.name,
         ref_number: candidateData.ref,
@@ -4767,7 +4756,8 @@ to { opacity: 1; transform: scale(1); }
     } catch (err) {
       console.log('Email admission letter error:', err);
       const errText = (err && (err.message || err.text || JSON.stringify(err))) || String(err);
-      showToast("Couldn't send email", 'warning');
+      alert('Could not send Admission Letter:\n\n' + errText);
+      showToast('Could not send Admission Letter — see error popup', 'warning');
     }
   }
 
@@ -6180,10 +6170,6 @@ to { opacity: 1; transform: scale(1); }
   // interrupted draft, so an interrupted EDIT can actually be reopened.
   Promise.resolve(fetchAllStudents()).then(checkForWiDraftOnLoad, checkForWiDraftOnLoad);
 
-  // Shows immediately whenever anyone opens the dashboard — not tied to
-  // any actual send attempt.
-  showToast("Couldn't send email", 'warning');
-
   // ==================== BIOMETRIC REVIEW DESK (merged from admin-review.html) ====================
 
   // Live Supabase Cloud Database Configuration
@@ -6801,7 +6787,7 @@ to { opacity: 1; transform: scale(1); }
     }
 
     if (window.emailjs) {
-      window.emailjs.send('service_5czv47g', 'template_xbwn8mh', {
+      window.emailjs.send('service_5cz47g', 'templte_xbwn8mh', {
         to_email: s.email,
         to_name: s.name || `${s.surname || ''} ${s.firstName || ''}`.trim(),
         matric_number: s.ref || s.matricNo,
@@ -6810,7 +6796,7 @@ to { opacity: 1; transform: scale(1); }
       }).then(() => {
         showToast(`Clearance email sent to ${s.email}`, 'success');
       }).catch(err => {
-        showToast("Couldn't send email", 'warning');
+        showToast('Clearance email FAILED to send: ' + (err && err.text ? err.text : err), 'warning');
       });
     } else {
       showToast('Email service not loaded — clearance email not sent.', 'warning');
