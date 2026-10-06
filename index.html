@@ -3164,10 +3164,7 @@ to { opacity: 1; transform: scale(1); }
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       if (window.emailjs) {
-    window.emailjs.init({
-        publicKey: '4fXlPPwE6WWPkDCq1'
-    });
-}
+        window.emailjs.init('4fXlPPwE6WWPkDCq1');
       }
 
       document.getElementById('sbLogoSlot').innerHTML = '<img src="' + LOGO_SRC + '" style="height:30px;width:auto;object-fit:contain;">';
@@ -3887,7 +3884,7 @@ to { opacity: 1; transform: scale(1); }
       document_links_html: ''
     }).then(() => {
       showToast(`Matric Number & Biodata Email dispatched to ${s.email}`, 'success');
-    }).catch(err => {
+    }).catch(() => {
       showToast("Couldn't send email", 'warning');
     });
   }
@@ -3917,7 +3914,7 @@ to { opacity: 1; transform: scale(1); }
       document_links_html: ''
     }).then(() => {
       showToast(`Official Clearance & Matriculation Email dispatched to ${s.email}`, 'success');
-    }).catch(err => {
+    }).catch(() => {
       showToast("Couldn't send email", 'warning');
     });
   }
@@ -6172,10 +6169,6 @@ to { opacity: 1; transform: scale(1); }
   // Initial Load — wait for the candidate list before checking for an
   // interrupted draft, so an interrupted EDIT can actually be reopened.
   Promise.resolve(fetchAllStudents()).then(checkForWiDraftOnLoad, checkForWiDraftOnLoad);
-
-  // Shows immediately whenever anyone opens the dashboard — not tied to
-  // any actual send attempt.
-  showToast("Couldn't send email", 'warning');
 
   // ==================== BIOMETRIC REVIEW DESK (merged from admin-review.html) ====================
 
