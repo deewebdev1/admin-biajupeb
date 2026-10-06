@@ -3164,17 +3164,10 @@ to { opacity: 1; transform: scale(1); }
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       if (window.emailjs) {
-        window.emailjs.init('4fXlPPwE6WWPkDCq1');
-        // EMAIL SENDING DISABLED — replace the real client with a stub so
-        // no button anywhere can ever reach EmailJS's servers. Every send
-        // call now rejects immediately with a clear message, which each
-        // calling function already surfaces to the admin as a failure.
-        window.emailjs = {
-          init: function () {},
-          send: function () {
-            return Promise.reject(new Error("Couldn't send email"));
-          }
-        };
+    window.emailjs.init({
+        publicKey: '4fXlPPwE6WWPkDCq1'
+    });
+}
       }
 
       document.getElementById('sbLogoSlot').innerHTML = '<img src="' + LOGO_SRC + '" style="height:30px;width:auto;object-fit:contain;">';
