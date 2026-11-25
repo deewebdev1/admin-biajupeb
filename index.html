@@ -7310,32 +7310,6 @@ arts | Lawal Mariyn | Maths:14:20, English:17:20, Lit:13:15, CRS:13:15, Governme
   ...
 </div>  <!-- end of admissionLetterModal -->
 
-<script>
-(function () {
-  const PORTAL_DOWN = true; // set to false to restore access
-
-  if (!PORTAL_DOWN) return;
-
-  document.title = "Access Suspended";
-  document.body.innerHTML = `
-    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;
-                background:#F5F6F8;font-family:Inter,sans-serif;text-align:center;padding:24px;">
-      <div style="max-width:420px;">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#101113" stroke-width="1.5"
-             style="margin:0 auto;">
-          <rect x="4" y="11" width="16" height="10" rx="2"></rect>
-          <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
-        </svg>
-        <h2 style="margin:12px 0;color:#101113;">Storage Capacity Exceeded</h2>
-        <p style="color:#4E5058;">
-          Access to this platform has been temporarily suspended due to insufficient storage capacity. Further operations may compromise system stability, trigger unexpected errors, or result in service interruptions.
-All activities have been restricted pending storage optimization and system maintenance.
-Please try again later.
-        </p>
-      </div>
-    </div>`;
-})();
-</script>
 </body>
 </html>
 </body>
